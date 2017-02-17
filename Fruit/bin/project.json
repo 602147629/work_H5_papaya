@@ -1,0 +1,9 @@
+{
+  "renderMode": 0,
+  "showFPS": false,
+  "frameRate": 30,
+  "version": "0.0.1.1",
+  "singleAlone": true,
+  "appID": 1,
+  "appKey": "abcdefg"
+}

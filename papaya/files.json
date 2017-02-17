@@ -1,0 +1,18 @@
+[
+    "libs/moment.js",
+    "libs/sprintf.js",
+    "libs/uuid.js",
+    "base/boot.js",
+    "base/events.js",
+    "base/serialize.js",
+    "base/entity.js",
+    "base/game.js",
+    "base/player.js",
+    "consts/code.js",
+    "lucky5/lucky5.boot.js",
+    "lucky5/lucky5.poker.js",
+    "lucky5/lucky5.events.js",
+    "lucky5/lucky5.logic.js",
+    "lucky5/lucky5.game.js",
+    "lucky5/lucky5.double.js"
+]
