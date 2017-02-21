@@ -32,16 +32,16 @@
 
     //*大三元
     Rotary.BIG_TRIPLE = [
-        {fruitName: "Bell", multiple:1, weight: 500},
-        {fruitName: "Pomelo", multiple:1, weight: 500},
-        {fruitName: "Orange", multiple:1, weight: 500}
+        {fruitName: "Watermelon", multiple:1, weight: 700},
+        {fruitName: "Star", multiple:1, weight: 700},
+        {fruitName: "77", multiple:1, weight: 700}
     ];
 
     //*小三元
     Rotary.SMALL_TRIPLE = [
-        {fruitName: "Watermelon", multiple:1, weight: 700},
-        {fruitName: "Star", multiple:1, weight: 700},
-        {fruitName: "77", multiple:1, weight: 700}
+        {fruitName: "Bell", multiple:1, weight: 500},
+        {fruitName: "Pomelo", multiple:1, weight: 500},
+        {fruitName: "Orange", multiple:1, weight: 500}
     ];
 
     //*大四喜
