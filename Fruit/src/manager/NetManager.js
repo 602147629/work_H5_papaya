@@ -264,72 +264,14 @@ var SingleAlone = (function(_super) {
     SingleAlone.response['/user/sync'] = {};
     SingleAlone.response['/user/enter'] = {};
 
-    //SingleAlone.response['/lucky5/deal'] = function(params) {
-    //    var data = {};
-    //    var game = App.game = new Fruit.Game();
-    //
-    //    game.bet(params.bet);
-    //    game.deal();
-    //
-    //    data.pokers = game.handPokers;
-    //    data.player = {
-    //        balance: App.player.balance - params.bet
-    //    };
-    //
-    //    console.log("下注金额：", params.bet, "余额：", data.player.balance);
-    //
-    //    return data;
-    //};
-    //SingleAlone.response['/lucky5/draw'] = function(params) {
-    //    var data = {};
-    //    var game = App.game;
-    //
-    //    game.hold(params.hold);
-    //    game.draw();
-    //    game.end();
-    //
-    //    data.pokers     = game.handPokers;
-    //    data.holds      = game.holdPokers;
-    //    data.marks      = game.markPokers;
-    //    data.result     = game.result;
-    //    data.score      = game.score;
-    //    data.player     = {
-    //        balance: App.player.balance + game.score
-    //    };
-    //
-    //    console.log("游戏得分：", game.score, "余额：", data.player.balance);
-    //
-    //    return data;
-    //};
-    //SingleAlone.response['/lucky5/double/deal'] = function(params) {
-    //    var data = {};
-    //
-    //    var double = App.double = new Lucky5.Double();
-    //
-    //    double.bet(params.bet);
-    //    double.deal();
-    //
-    //    data.pokers = double.handPokers;
-    //    data.player = {
-    //        balance: App.player.balance - params.bet
-    //    };
-    //
-    //    return data;
-    //};
-    //SingleAlone.response['/lucky5/double/draw'] = function(params) {
-    //    var data = {};
-    //    var double = App.double;
-    //
-    //    double.draw(params.selected);
-    //    double.end();
-    //
-    //    data.pokers = double.handPokers;
-    //    data.player = {
-    //        balance: App.player.balance - params.bet
-    //    };
-    //
-    //    return data;
-    //};
+    SingleAlone.response['/fruit/betOn'] = function(params) {
+        var data = {};
+        var game = App.game = new Fruit.Game();
+
+        data = game.betOn();
+
+        return data;
+    };
 
     return SingleAlone;
 }(NetManager));
