@@ -4,30 +4,30 @@
     };
 
     Rotary.ROTARY_FRUITS = [
-        {fruitName: "Apple", multiple:1, weight: 1750},
-        {fruitName: "Bell", multiple:3, weight: 1000},
-        {fruitName: "Orange", multiple:1, weight: 500},
-        {fruitName: "Bell", multiple:1, weight: 500},
-        {fruitName: "GG", multiple: 50, weight: 2},
-        {fruitName: "GG", multiple: 100, weight: 4},
-        {fruitName: "Apple", multiple:1, weight: 1750},
-        {fruitName: "Apple", multiple:3, weight: 1000},
-        {fruitName: "Pomelo", multiple:1, weight: 500},
-        {fruitName: "Watermelon", multiple:1, weight: 700},
-        {fruitName: "Watermelon", multiple:3, weight: 1000},
-        {fruitName: "BlueLuck", multiple:1, weight: 350},
-        {fruitName: "Apple", multiple:1, weight: 1750},
-        {fruitName: "Orange", multiple:3, weight: 1000},
-        {fruitName: "Orange", multiple:1, weight: 500},
-        {fruitName: "Bell", multiple:1, weight: 500},
-        {fruitName: "77", multiple:3, weight: 1000},
-        {fruitName: "77", multiple:1, weight: 700},
-        {fruitName: "Apple", multiple:1, weight: 1750},
-        {fruitName: "Pomelo", multiple:3, weight: 1000},
-        {fruitName: "Pomelo", multiple:1, weight: 500},
-        {fruitName: "Star", multiple:1, weight: 700},
-        {fruitName: "Star", multiple:3, weight: 1000},
-        {fruitName: "GoldenLuck", multiple:1, weight: 350}
+        {id:1001, fruitName: "Apple", multiple:1, weight: 1750},
+        {id:1002, fruitName: "Bell", multiple:3, weight: 1000},
+        {id:1003, fruitName: "Orange", multiple:1, weight: 500},
+        {id:1004, fruitName: "Bell", multiple:1, weight: 500},
+        {id:1005, fruitName: "GG", multiple: 50, weight: 2},
+        {id:1006, fruitName: "GG", multiple: 100, weight: 4},
+        {id:1007, fruitName: "Apple", multiple:1, weight: 1750},
+        {id:1008, fruitName: "Apple", multiple:3, weight: 1000},
+        {id:1009, fruitName: "Pomelo", multiple:1, weight: 500},
+        {id:1010, fruitName: "Watermelon", multiple:1, weight: 700},
+        {id:1011, fruitName: "Watermelon", multiple:3, weight: 1000},
+        {id:1012, fruitName: "BlueLuck", multiple:1, weight: 350},
+        {id:1013, fruitName: "Apple", multiple:1, weight: 1750},
+        {id:1014, fruitName: "Orange", multiple:3, weight: 1000},
+        {id:1015, fruitName: "Orange", multiple:1, weight: 500},
+        {id:1016, fruitName: "Bell", multiple:1, weight: 500},
+        {id:1017, fruitName: "77", multiple:3, weight: 1000},
+        {id:1018, fruitName: "77", multiple:1, weight: 700},
+        {id:1019, fruitName: "Apple", multiple:1, weight: 1750},
+        {id:1020, fruitName: "Pomelo", multiple:3, weight: 1000},
+        {id:1021, fruitName: "Pomelo", multiple:1, weight: 500},
+        {id:1022, fruitName: "Star", multiple:1, weight: 700},
+        {id:1023, fruitName: "Star", multiple:3, weight: 1000},
+        {id:1024, fruitName: "GoldenLuck", multiple:1, weight: 350}
     ];
 
     //*大三元
@@ -60,6 +60,9 @@
     Rotary.PROBABILITY_GIVE_LIGHT_START = 1;
     Rotary.PROBABILITY_GIVE_LIGHT_END = 5;
 
+    //*苹果的赔率
+    Rotary.MULTIPLE_BY_APPLE = 5;
+
     //*luck
     Rotary.LUCK_NAME_LIST = ["GoldenLuck", "BlueLuck"];
 
@@ -69,4 +72,15 @@
         SMALL_TRIPLE: "SMALL_TRIPLE",
         QUADRUPLE: "QUADRUPLE"
     };
+
+    Rotary.FRUIT_NAME_LIST = [
+        "GG",
+        "77",
+        "Star",
+        "Watermelon",
+        "Bell",
+        "Pomelo",
+        "Orange",
+        "Apple"
+    ];
 } (Papaya.Fruit));
