@@ -18,6 +18,10 @@
         this.hadLuckFruit   = false;
         this.lowMultiple    = 10;
         this.highMultiple   = 20;
+        this.betInfo        = {};
+        this.betTotal       = 0;
+
+        this.bonus          = 0;
 
         this.init();
     };
@@ -31,16 +35,42 @@
 
         },
 
-        betOn: function (info) {
+        betOn: function (betInfo) {
             var result = {
                 rotateFruit: [],
                 luckFruit: [],
                 rewardFruit: [],
-                isEatLight: false
+                isEatLight: false,
+                bonusWin: 0,
+                betTotal: 0,
+                lowMultiple: 10,
+                highMultiple: 20
             };
 
             this.hadLuckFruit = false;
             this._fruitList = [];
+            this.betInfo = {};
+            this.betTotal = 0;
+
+            if (typeof (betInfo) != "object"){
+                console.log("数据错了");
+                return;
+            }
+
+            //*检查是否没有押注
+            var betSum = 0;
+            var betNum = 0;
+            for (var index in betInfo) {
+                betNum = betInfo[index];
+                betSum += betNum;
+            }
+            if (betSum <= 0) {
+                console.log("没有押注");
+                return;
+            }
+            this.betInfo = betInfo;
+            this.betTotal = betSum;
+
             //*一开始转灯
             var giveLightNum = this.giveLights();
             var lightTotal = this.baseLightNum + giveLightNum;
@@ -61,6 +91,11 @@
             this.randomMultiple();
             result.lowMultiple = this.lowMultiple;
             result.highMultiple = this.highMultiple;
+
+            this.bonus = this.calcTotalBonusWin(result);
+            //*结算
+            result.bonusWin = this.bonus;
+            result.betTotal = -this.betTotal;
 
             return result;
         },
@@ -205,6 +240,52 @@
             rand = this.randomNumber(99);
             var highMultipleIndex = this.getMultipleIndex(rand);
             this.highMultiple = Rotary.RANDOM_MULTIPLE_HIGH[highMultipleIndex];
+        },
+
+        calcTotalBonusWin: function (result) {
+            var bonus = 0;
+            if (!result.isEatLight) {
+                var rotateFruitBonus = this.calcBonus(result.rotateFruit);
+                var luckFruitBonus = this.calcBonus(result.luckFruit);
+                var rewardFruitBonus = this.calcBonus(result.rewardFruit);
+
+                bonus = rotateFruitBonus + luckFruitBonus + rewardFruitBonus;
+            }
+
+            return bonus;
+        },
+
+        calcBonus: function (fruitList) {
+            var bonus = 0;
+            var fruit = null;
+            var fruitName = "";
+            var multiple = 10;
+            var betFruitInfo = null;
+            for (var index in fruitList) {
+                fruit = fruitList[index];
+                fruitName = fruit.fruitName;
+                multiple = fruit.multiple;
+                betFruitInfo = this.betInfo[fruitName];
+                if (betFruitInfo <= 0) {
+                    continue;
+                }
+
+                if (multiple <= 1) {
+                    if (this.checkFruitIsSmallTriple(fruit)) {
+                        multiple = this.lowMultiple;
+                    }
+                    else if (this.checkFruitIsSmallTriple(fruit)) {
+                        multiple = this.highMultiple;
+                    }
+                    else if (this.checkFruitIsApple(fruit)){
+                        multiple = Rotary.MULTIPLE_BY_APPLE;
+                    }
+                }
+
+                bonus += betFruitInfo * multiple;
+            }
+
+            return bonus;
         },
 
         getMultipleIndex: function (rand) {
