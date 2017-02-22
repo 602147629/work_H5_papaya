@@ -268,10 +268,14 @@ var SingleAlone = (function(_super) {
         var data = {};
         var game = App.game = new Fruit.Game();
 
-        data = game.betOn();
+        data = game.betOn(params.bet);
+        data.player = {
+            balance: App.player.balance - game.betTotal + game.bonus
+        };
 
         return data;
     };
+
 
     return SingleAlone;
 }(NetManager));
