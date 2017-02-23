@@ -499,6 +499,29 @@
         }
     });
 
+
+    guessTheSizeOf: function (betInfo) {
+        var result = {
+           randNum: 0,
+           bonusWin: 0
+        };
+        
+        var rand = this.randomNum(12, 1);
+
+        if (rand >=1 && rand <= 6) {
+
+        }
+        else if (rand >= 8 && rand <= 13) {
+
+        } 
+        else {
+
+        }
+        
+
+        return result;
+    };
+
     Game.STATE = {};
     Game.STATE.READY            = 0;
     Game.STATE.STARTED          = 1;
