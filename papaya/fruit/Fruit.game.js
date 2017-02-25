@@ -266,6 +266,11 @@
                 fruitName = fruit.fruitName;
                 multiple = fruit.multiple;
                 betFruitInfo = this.betInfo[fruitName];
+
+                if (this.checkFruitIsLuck(fruitName)) {
+                    continue;
+                }
+
                 if (betFruitInfo <= 0) {
                     continue;
                 }
@@ -274,7 +279,7 @@
                     if (this.checkFruitIsSmallTriple(fruit)) {
                         multiple = this.lowMultiple;
                     }
-                    else if (this.checkFruitIsSmallTriple(fruit)) {
+                    else if (this.checkFruitIsBigTriple(fruit)) {
                         multiple = this.highMultiple;
                     }
                     else if (this.checkFruitIsApple(fruit)){
@@ -496,31 +501,65 @@
             }
 
             return result;
+        },
+
+        guessTheSizeOf: function (betInfo) {
+            var result = {
+                randNum: 0,
+                bonusWin: 0
+            };
+
+            var bonus = 0;
+            var betNum = betInfo.bet;
+            var betType = betInfo.betType || Rotary.GUESS_SIZE_TYPE.LOW;
+            var betLimit = betNum * 2;
+
+            if (betNum == 0) {
+                console.log("没有押注金额");
+                return;
+            }
+
+            if (betNum > betLimit) {
+                console.log("押注金额超过限定！");
+                return;
+            }
+
+            //*随机1-13
+            var rand = this.randomNumber(12, 1);
+            var randType = null;
+            if (rand >=1 && rand <= 6) {
+                randType = Rotary.GUESS_SIZE_TYPE.LOW;
+            }
+            else if (rand >= 8 && rand <= 13) {
+                randType = Rotary.GUESS_SIZE_TYPE.HIGH;
+            }
+            else {
+                randType = Rotary.GUESS_SIZE_TYPE.ZERO;
+            }
+
+            if (randType == Rotary.GUESS_SIZE_TYPE.ZERO) {
+                bonus = 0;
+                betNum = 0;
+            }
+            else {
+                if (randType == betType) {
+                    //*中奖了
+                    bonus = betNum * 2;
+                }
+                else {
+                    bonus = -betNum;
+                    betNum = 0;
+                }
+            }
+
+            this.bonus = bonus;
+            this.betTotal = betNum;
+            result.bonusWin = bonus;
+            result.randNum = rand;
+
+            return result;
         }
     });
-
-
-    guessTheSizeOf: function (betInfo) {
-        var result = {
-           randNum: 0,
-           bonusWin: 0
-        };
-        
-        var rand = this.randomNum(12, 1);
-
-        if (rand >=1 && rand <= 6) {
-
-        }
-        else if (rand >= 8 && rand <= 13) {
-
-        } 
-        else {
-
-        }
-        
-
-        return result;
-    };
 
     Game.STATE = {};
     Game.STATE.READY            = 0;
