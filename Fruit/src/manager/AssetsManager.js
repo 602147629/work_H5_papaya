@@ -2,17 +2,17 @@
 var AssetsManager = (function(_super) {
     var loaderRes = [
         {
-            url: "bg.png",
+            url: "assets/bg.png",
             type: Laya.Loader.IMAGE
         },
 
         {
-            url: "ui.loader/progress.png",
+            url: "assets/ui.loader/progress.png",
             type: Laya.Loader.IMAGE
         },
 
         {
-            url: "ui.loader/progress$bar.png",
+            url: "assets/ui.loader/progress$bar.png",
             type: Laya.Loader.IMAGE
         },
 
@@ -24,46 +24,46 @@ var AssetsManager = (function(_super) {
 
     var preload = [
         {
-            url: "res/atlas/ui.button.json",
+            url: "assets/atlas/assets/ui.button.json",
             type: Laya.Loader.ATLAS
         },
 
         {
-            url: "res/atlas/ui.images.json",
+            url: "assets/atlas/assets/ui.images.json",
             type: Laya.Loader.ATLAS
         },
 
         {
-            url: "res/atlas/ui.label.json",
+            url: "assets/atlas/assets/ui.label.json",
             type: Laya.Loader.ATLAS
         },
 
         {
-            url: "res/atlas/ui.main.json",
+            url: "assets/atlas/assets/ui.main.json",
             type: Laya.Loader.ATLAS
         },
 
         {
-            url: "res/atlas/ui.record.json",
+            url: "assets/atlas/assets/ui.record.json",
             type: Laya.Loader.ATLAS
         },
     ];
 
     var preloadFonts = [
         {
-            url: "res/fonts/brown.fnt"
+            url: "assets/fonts/brown.fnt"
         },
 
         {
-            url: "res/fonts/red.fnt"
+            url: "assets/fonts/red.fnt"
         },
 
         {
-            url: "res/fonts/white.fnt"
+            url: "assets/fonts/white.fnt"
         },
 
         {
-            url: "res/fonts/yellow.fnt"
+            url: "assets/fonts/yellow.fnt"
         }
     ];
 
