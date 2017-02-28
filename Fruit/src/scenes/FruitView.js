@@ -1,27 +1,39 @@
- var FruitMainView = (function(_super) {
+var FruitMainView = (function(_super) {
     var Fruit = null;
     var Rotary = null;
 
     function FruitMainView() {
         FruitMainView.super(this);
 
-        this.rotaryfruitList = null;
-        this.fruitNameList = null;
-        this.rotaryGuessType = null;
+        this.rotaryfruitList        = null;
+        this.fruitNameList          = null;
+        this.rotaryGuessType        = null;
 
-        this.rotaryFruitCellList = [];
-        this.fruitBetBtnList = {};
-        this.fruitBetLabelList = {};
+        this.rotaryFruitCellList    = [];
+        this.fruitBetBtnList        = {};
+        this.fruitBetLabelList      = {};
+        this.fruitLightList         = [];
+        this.fruitBettingList       = {};//*下注列表
+        this.rotatingLightInfoList  = [];
+        this.lowMultipleImgs        = [];
+        this.highMultipleImgs       = [];
 
-        this.bonusWin = 0;//*奖励
-        this.balance = 0;//*手上的赌金
+        this.bonusWin               = 0;//*奖励
+        this.balance                = 0;//*手上的赌金
+        this.betFactor              = 1;//*下注因数
+        this.lastLightByFruitIndex  = 0;
 
-        this.betFactor = 1;//*下注因数
-        this.fruitBettingList = {};//*下注列表
+        this.totalByWillShowLight   = 0;
+        this.stoppedLigths          = 0;//*已经停下的灯的个数
+        this.multiples              = {low: 10, high: 20};
+        this.guessCanBetTotal       = 0;
+        this.guessedNum             = 0;//*猜大小的结果
 
-        this.guessedNum = 0;//*猜大小的结果
+        this.canBetFruit            = true;
+        this.canGuessNum            = false;
+        this.canTouchGoBtn          = false;
 
-        this.gameState = FruitMainView.STATE_GAME_INIT;
+        this.gameState              = FruitMainView.STATE_GAME_INIT;
     }
 
     Laya.class(FruitMainView, "FruitMainView", _super);
@@ -111,6 +123,8 @@
     FruitMainView.prototype.initFruitRotaryShow = function () {
         this.initRotaryFruitCell();
         this.initRotaryLabelShow();
+        this.initMultipLights();
+        this.initRecordBoxList();
     };
 
     FruitMainView.prototype.initRotaryFruitCell = function () {
@@ -166,6 +180,45 @@
         }
     };
 
+    FruitMainView.prototype.initMultipLights = function () {
+        var lowMultiple = Rotary.RANDOM_MULTIPLE_LOW;
+        var highMultiple = Rotary.RANDOM_MULTIPLE_HIGH;
+
+        for (var index = 0; index < 3; index ++) {
+            var lowImg = this.multipleBox.getChildByName("low_" + lowMultiple[index] + "_multiple");
+            this.lowMultipleImgs.push(lowImg);
+            var highImg = this.multipleBox.getChildByName("high_" + highMultiple[index] +"_multiple");
+            this.highMultipleImgs.push(highImg);
+        }
+
+        this.lowLight = new MultipleLightBox(this.lowMultipleImgs);
+        this.multipleBox.addChild(this.lowLight);
+        this.highLight = new MultipleLightBox(this.highMultipleImgs);
+        this.multipleBox.addChild(this.highLight);
+    };
+
+    FruitMainView.prototype.initRecordBoxList = function () {
+        var array = [];
+        var list = new laya.ui.List();
+        var render = FruitRecordBox || new laya.ui.Box();
+
+        list.array = array;
+        list.itemRender = render || new laya.ui.Box();
+
+        list.x = 0;
+        list.y = 0;
+        list.width = this.recordListBox.width;
+        list.height = this.recordListBox.height;
+
+        list.spaceY = 5;
+        list.vScrollBarSkin = "";
+
+        list.renderHandler = render.renderHandler ? new Laya.Handler(render, render.renderHandler) : null;
+
+        this.recordItemListBox = list;
+        this.recordListBox.addChild(list);
+    };
+
     FruitMainView.prototype.initTopInfoShow = function () {
         var player = App.player;
         this.balance = player.balance;
@@ -189,19 +242,37 @@
         this.bonusWinLab.text = bonus;
     };
 
-     FruitMainView.prototype.setBettingLabelText = function (fruitName) {
-         if (this.fruitNameList.indexOf(fruitName) == -1) {
-             return;
-         }
+    FruitMainView.prototype.setBettingLabelText = function (fruitName) {
+        if (this.fruitNameList.indexOf(fruitName) == -1) {
+            return;
+        }
 
-         this.fruitBetLabelList[fruitName].text = this.fruitBettingList[fruitName];
-     };
+        this.fruitBetLabelList[fruitName].text = this.fruitBettingList[fruitName];
+    };
 
     FruitMainView.prototype.onAllFruitAddBet = function () {
+        if (!this.canBetFruit) {
+            return;
+        }
 
+        var balance = this.balance;
+        var totalFruit = this.fruitNameList.length;
+        var allAddBetNum = this.betFactor * totalFruit;
+        var fruitName = "";
+
+        if (allAddBetNum <= balance) {
+            for (var fruitNameIndex in this.fruitNameList) {
+                fruitName = this.fruitNameList[fruitNameIndex];
+                this.onBetFruit(fruitName);
+            }
+        }
     };
 
     FruitMainView.prototype.onBetFruit = function (fruitName) {
+        if (!this.canBetFruit) {
+            return;
+        }
+
         if (this.fruitNameList.indexOf(fruitName) == -1) {
             return;
         }
@@ -213,52 +284,417 @@
         }
         this.fruitBettingList[fruitName] = betting;
         this.setBettingLabelText(fruitName);
+
+        var remainBalance = this.balance - this.betFactor;
+        this.setCreditLabText(remainBalance);
+        this.balance = remainBalance;
     };
 
     FruitMainView.prototype.onGuessNumber = function (guessType) {
+        this.lightsUnBlinkOnView();
+
+        if (!this.canGuessNum) {
+            return;
+        }
+
+        if (FruitMainView.GUESS_TYPE[guessType] == null) {
+            this.updateGameStateToCanBet();
+            return;
+        }
+
+        var type = null;
+        var bet = this.bonusWin;
+
         switch (guessType) {
             case FruitMainView.GUESS_TYPE.Low: {
+                type = Rotary.GUESS_SIZE_TYPE.LOW;
                 break;
             }
-            case  FruitMainView.GUESS_TYPE.High: {
+            case FruitMainView.GUESS_TYPE.High: {
+                type = Rotary.GUESS_SIZE_TYPE.HIGH;
                 break;
             }
             default: {
                 break;
             }
+        }
+
+        if (this.gameState == FruitMainView.STATE_GUESS_BETTING) {
+            var self = this;
+
+            var complete = function(err, data) {
+                if (err != null) {
+                    return;
+                }
+
+                self.onGuessRunning(data);
+            };
+
+            var api = "/fruit/guessTheSizeOf";
+            var params = {
+                bet: bet,
+                betType: type
+            };
+            App.netManager.request(api, params, Laya.Handler.create(null, complete));
+        }
+    };
+
+    FruitMainView.prototype.onGuessRunning = function (result) {
+        this.gameState = FruitMainView.STATE_GUESS_RUNNING;
+
+        App.player.update(result.player);
+
+        this.bonusWin = result.bonusWin;
+        this.guessedNum = result.randNum;
+        this.guessRunningTime = 0;
+
+        Laya.timer.frameLoop(1, this, this.guessNumberAction);
+    };
+
+    FruitMainView.prototype.guessNumberAction = function () {
+        var rand = Math.floor(Math.random() * 12) + 1;
+        var dt = Laya.timer.delta;
+        this.guessRunningTime += dt;
+
+        if (this.guessRunningTime >= 1500) {
+            Laya.timer.clear(this, this.guessNumberAction);
+            this.fruitBetLabelList[FruitMainView.GUESS_LABEL_INDEX].text = this.guessedNum;
+            if (this.bonusWin < 0) {
+                this.updateGameStateToCanBet();
+            }
+            else if (this.bonusWin > 0) {
+                this.guessCanBetTotal = this.bonusWin * 2;
+                this.setBonusWinLabText();
+                this.gameState = FruitMainView.STATE_GUESS_BETTING;
+            }
+            else {
+                this.gameState = FruitMainView.STATE_GUESS_BETTING;
+            }
+        }
+        else {
+            this.fruitBetLabelList[FruitMainView.GUESS_LABEL_INDEX].text = rand;
         }
     };
 
     FruitMainView.prototype.onGuessBetting = function (betType) {
+        this.lightsUnBlinkOnView();
+
+        if (!this.canGuessNum) {
+            return;
+        }
+
+        var guessBet = this.bonusWin;
         switch (betType) {
             case FruitMainView.BET_BTN_TYPE.Add: {
+                guessBet = this.bonusWin * 2;
+                if (guessBet >= this.guessCanBetTotal) {
+                    guessBet = this.guessCanBetTotal;
+                }
                 break;
             }
             case  FruitMainView.BET_BTN_TYPE.Cut: {
+                guessBet --;
+                if (guessBet <= 0) {
+                    this.updateGameStateToCanBet();
+                }
                 break;
             }
             default: {
                 break;
             }
         }
+
+        this.bonusWin = guessBet;
+        this.setBonusWinLabText();
+
+        this.balance = App.player.balance - this.bonusWin;
+        this.setCreditLabText();
     };
 
     FruitMainView.prototype.onChangeBetFactor = function (factorType) {
-        switch (betType) {
+        var betFactor = this.betFactor;
+        switch (factorType) {
             case FruitMainView.BET_BTN_TYPE.Add: {
+                betFactor ++;
+                if (betFactor >= FruitMainView.BET_FACTOR_MAX) {
+                    betFactor = FruitMainView.BET_FACTOR_MAX;
+                }
                 break;
             }
             case  FruitMainView.BET_BTN_TYPE.Cut: {
+                betFactor --;
+                if (betFactor <= FruitMainView.BET_FACTOR_MIN) {
+                    betFactor = FruitMainView.BET_FACTOR_MIN;
+                }
                 break;
             }
             default: {
                 break;
             }
         }
+
+        this.betFactor = betFactor;
+        this.setBetFactorLabText();
     };
 
     FruitMainView.prototype.onFruitRotaryRun = function () {
+        if (!this.canTouchGoBtn) {
+            return;
+        }
 
+        var gameState = this.gameState;
+
+        if (gameState == FruitMainView.STATE_GAME_INIT || gameState == FruitMainView.STATE_FRUIT_BETTING) {
+            var betTotal = this.getFruitBetTotal();
+            if (betTotal <= 0) {
+                return;
+            }
+
+            var self = this;
+            var fruitBet = this.fruitBettingList;
+            var complete = function(err, data) {
+                if (err != null) {
+                    return;
+                }
+
+                self.rotaryRunning(data);
+            };
+            var api = "/fruit/betOn";
+            var params = {
+                bet: fruitBet
+            };
+
+            App.netManager.request(api, params, Laya.Handler.create(null, complete));
+        }
+        else if (gameState == FruitMainView.STATE_GUESS_BETTING) {
+            this.updateGameStateToCanBet();
+        }
+    };
+
+    FruitMainView.prototype.updateGameStateToCanBet = function () {
+        this.bonusWin = 0;
+        this.stoppedLigths = 0;
+        this.totalByWillShowLight = 0;
+        this.guessCanBetTotal = 0;
+
+        this.setCreditLabText(App.player.balance);
+        this.setBonusWinLabText();
+        this.initFruitBettingList();
+
+        var fruitName = "";
+        for (var index in this.fruitNameList) {
+            fruitName = this.fruitNameList[index];
+            this.setBettingLabelText(fruitName);
+        }
+
+        this.gameState = FruitMainView.STATE_FRUIT_BETTING;
+    };
+
+    FruitMainView.prototype.rotaryRunning = function (result) {
+        this.gameState = FruitMainView.STATE_ROTARY_RUNNING;
+        this.cleanFruitLights();
+
+        App.player.update(result.player);
+
+        var fruitList = result.fruits;
+
+        this._fruitResultInRound = fruitList;
+
+        this.bonusWin = result.bonusWin;
+        this.multiples = result.multiples;
+        this.guessCanBetTotal = this.bonusWin * 2;
+
+
+        //var fruitType = null;
+        //var fruits = null;
+        //var fruitInfoIndex = null;
+        //var fruitId = 0;
+        //var startIndex = this.lastLightByFruitIndex;
+        //var endIndex = 0;
+        //var luckIndex = 0;
+        //var totalTurns = 2;
+        //var speed = 0.05;
+        //var lightInfoList = [];
+        //
+        //for (fruitType in fruitList) {
+        //    fruits = fruitList[fruitType];
+        //    for (fruitInfoIndex in fruits) {
+        //        this.totalByWillShowLight ++;
+        //        fruitId = fruits[fruitInfoIndex].id;
+        //
+        //        if (typeof (fruitId) != "number") {
+        //            var rand = Math.floor(Math.random() * fruitId.length);
+        //            fruitId = fruitId[rand];
+        //        }
+        //
+        //        endIndex = (fruitId % 1000) - 1;
+        //
+        //        if (endIndex == 11 || endIndex == 23) {
+        //            luckIndex = endIndex;
+        //        }
+        //
+        //        if (this.totalByWillShowLight > 1) {
+        //            totalTurns = 0;
+        //            speed = 0.07
+        //        }
+        //
+        //        if (fruitType == "luck") {
+        //            totalTurns = 0;
+        //            startIndex = luckIndex;
+        //            speed = 0.1;
+        //        }
+        //
+        //        var info = {
+        //            startIndex: startIndex,
+        //            endIndex: endIndex,
+        //            totalTurns: totalTurns,
+        //            moveSpeed: speed
+        //        };
+        //
+        //        lightInfoList.push(info);
+        //        this.lastLightByFruitIndex = endIndex;
+        //        startIndex = endIndex;
+        //    }
+        //}
+        //
+        //this.rotatingLightInfoList = lightInfoList;
+        //this.lightRotating();
+        //
+        //this.multipleLightMoving();
+    };
+
+    FruitMainView.prototype.cleanFruitLights = function () {
+        var fruitLightList = this.fruitLightList;
+        var length = fruitLightList.length;
+
+        for (var lightIndex = 0; lightIndex < length; lightIndex++) {
+            fruitLightList[lightIndex].dispose();
+        }
+
+        this.fruitLightList = [];
+    };
+
+    FruitMainView.prototype.lightRotating = function () {
+        var lightInfoList = this.rotatingLightInfoList;
+        if (lightInfoList.length <= 0) {
+            return;
+        }
+
+        var lightIndex = this.stoppedLigths;
+        var lightInfo = lightInfoList[lightIndex];
+        var light = new FruitLightBox(lightInfo);
+        light.on(FruitLightBox.STOP_MOVE, this, this.lightStoppedMove);
+        this.fruitBgBox.addChild(light);
+        this.fruitLightList.push(light);
+        light.move();
+
+        if (lightIndex == 0) {
+            //*装饰灯
+            for (var index = 1; index < 3; index ++) {
+                var startIndex = lightInfo.startIndex - index;
+                if (startIndex < 0) {
+                    startIndex = 24 + startIndex;
+                }
+
+                lightInfo = {
+                    startIndex: startIndex,
+                    endIndex: 0,
+                    destroyTurn: 1
+                };
+
+                var decorateLight = new FruitLightBox(lightInfo);
+                this.fruitBgBox.addChild(decorateLight);
+                decorateLight.move();
+            }
+        }
+    };
+
+    FruitMainView.prototype.lightStoppedMove = function () {
+        this.stoppedLigths ++;
+        this.multipleLightStopMoving();
+        if (this.stoppedLigths < this.totalByWillShowLight) {
+            this.lightRotating();
+        }
+        else {
+            this.showFruitResultOnView();
+        }
+    };
+
+    FruitMainView.prototype.showFruitResultOnView = function () {
+        this.gameState = FruitMainView.STATE_GUESS_BETTING;
+
+        this.setBonusWinLabText();
+        this.ligthsBlinkOnView();
+
+        //*记录显示
+        var fruitResultInRound = this._fruitResultInRound;
+        for (var index in fruitResultInRound) {
+            this.addRecordItem(fruitResultInRound[index]);
+        }
+
+        if (this.bonusWin <= 0) {
+            this.updateGameStateToCanBet();
+        }
+    };
+
+    FruitMainView.prototype.addRecordItem = function (fruitList) {
+        if (fruitList == null) {
+            return;
+        }
+
+        var boxItemLength = this.recordItemListBox.length;
+        var fruitLength = fruitList.length;
+
+        if (fruitLength <= 0) {
+            return;
+        }
+
+        var listNextLength = boxItemLength + fruitLength;
+        if (listNextLength > 30) {
+            var diff = listNextLength - 30;
+            for (var index = 0; index < diff; index ++) {
+                this.recordItemListBox.deleteItem(index);
+            }
+
+            this.recordItemListBox.refresh();
+        }
+
+        for (var fruitIndex in fruitList) {
+            this.recordItemListBox.addItem(fruitList[fruitIndex]);
+        }
+
+        this.recordItemListBox.tweenTo(this.recordItemListBox.length);
+    };
+
+    FruitMainView.prototype.ligthsBlinkOnView = function () {
+        var fruitLightIndex = 0;
+        for (fruitLightIndex in this.fruitLightList) {
+            this.fruitLightList[fruitLightIndex].doLightBlink();
+        }
+
+        this.lowLight.doLightBlink();
+        this.highLight.doLightBlink();
+    };
+
+    FruitMainView.prototype.lightsUnBlinkOnView = function () {
+        for (var index in this.fruitLightList) {
+            this.fruitLightList[index].stopLightBlink();
+        }
+
+        this.lowLight.stopLightBlink();
+        this.highLight.stopLightBlink();
+    };
+
+    FruitMainView.prototype.multipleLightMoving = function () {
+        //var lowLightEndIndex = Rotary.RANDOM_MULTIPLE_LOW.indexOf(this.multipleByLow);
+        //var highLightEndIndex = Rotary.RANDOM_MULTIPLE_HIGH.indexOf(this.multipleByHigh);
+        //this.lowLight.startMove(lowLightEndIndex);
+        //this.highLight.startMove(highLightEndIndex);
+    };
+
+    FruitMainView.prototype.multipleLightStopMoving = function () {
+        this.lowLight.stopMove();
+        this.highLight.stopMove();
     };
 
     FruitMainView.prototype.update = function () {
@@ -269,42 +705,45 @@
                 this.setGuessBetBtnsDisabled(true);
 
                 if (this.getFruitBetTotal() > 0) {
-                    this.goBtn.disabled = false;
+                    this.setGoBtnDisabled(false);
                 }
                 else {
-                    this.goBtn.disabled = true;
+                    this.setGoBtnDisabled(true);
                 }
+
+                this.lightsUnBlinkOnView();
                 break;
             }
             case FruitMainView.STATE_ROTARY_RUNNING:
             case FruitMainView.STATE_GUESS_RUNNING: {
                 this.setFruitBetBtnsDisabled(true);
-                this.setGuessBetBtnsDisabled(false);
-                this.goBtn.disabled = true;
+                this.setGuessBetBtnsDisabled(true);
+                this.setGoBtnDisabled(true);
                 break;
             }
             case FruitMainView.STATE_GUESS_BETTING: {
                 this.setFruitBetBtnsDisabled(true);
                 this.setGuessBetBtnsDisabled(false);
-                this.goBtn.disabled = false;
+                this.setGoBtnDisabled(false);
                 break;
             }
         }
     };
 
     FruitMainView.prototype.setFruitBetBtnsDisabled = function (disabled) {
-        this.allAddBtn.disabled = disabled;
-        for (var index in this.fruitBetBtnList) {
-            this.fruitBetBtnList[index].disabled = disabled;
-        }
+        this.fruitBtnGrayLayer.visible = disabled;
+        this.canBetFruit = !disabled;
     };
 
     FruitMainView.prototype.setGuessBetBtnsDisabled = function (disabled) {
-        this.betAddDoubleBtn.disabled = disabled;
-        this.betCutDoubleBtn.disabled = disabled;
-        this.lowNumBtn.disabled = disabled;
-        this.highNumBtn.disabled = disabled;
+        this.guessBtnGrayLayer.visible = disabled;
+        this.canGuessNum = !disabled;
     };
+
+    FruitMainView.prototype.setGoBtnDisabled = function (disabled) {
+        this.goBtnGrayLayer.visible = disabled;
+        this.canTouchGoBtn = !disabled;
+    }
 
     FruitMainView.prototype.getFruitBetTotal = function () {
         var index;
@@ -323,16 +762,18 @@
     FruitMainView.STATE_GUESS_RUNNING = 4;
 
     FruitMainView.BET_BTN_TYPE = {
-        Add: "add",
-        Cut: "cut"
+        Add: "Add",
+        Cut: "Cut"
     };
 
     FruitMainView.GUESS_TYPE = {
-        Low: "low",
-        High: "high"
+        Low: "Low",
+        High: "High"
     };
 
     FruitMainView.BET_FRUIT_MAX = 99;
+    FruitMainView.BET_FACTOR_MAX = 99;
+    FruitMainView.BET_FACTOR_MIN = 1;
 
     FruitMainView.GRAY_ZERO_LAB_TOTAL = 9;
 
