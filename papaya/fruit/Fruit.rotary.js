@@ -31,21 +31,19 @@
     ];
 
     //*大三元
-    Rotary.BIG_TRIPLE = [
-        {fruitName: "Watermelon", multiple:1, weight: 700},
-        {fruitName: "Star", multiple:1, weight: 700},
-        {fruitName: "77", multiple:1, weight: 700}
-    ];
+    Rotary.BIG_TRIPLE = [1010, 1022, 1018];
 
     //*小三元
-    Rotary.SMALL_TRIPLE = [
-        {fruitName: "Bell", multiple:1, weight: 500},
-        {fruitName: "Pomelo", multiple:1, weight: 500},
-        {fruitName: "Orange", multiple:1, weight: 500}
-    ];
+    Rotary.SMALL_TRIPLE = {
+        "Bell": [1004, 1016],
+        "Pomelo": [1009, 1021],
+        "Orange": [1003, 1015]
+    };
+
+    Rotary.SMALL_TRIPLE_ALL_FRUITS = [1004, 1016, 1009, 1021, 1003, 1015];
 
     //*大四喜
-    Rotary.QUADRUPLE = {fruitName: "Apple", multiple:1, weight: 1750};
+    Rotary.QUADRUPLE = [1001, 1007, 1013, 1019];
 
     //*随机倍率区
     Rotary.RANDOM_MULTIPLE_LOW = [10, 15, 20];
@@ -65,6 +63,7 @@
 
     //*luck
     Rotary.LUCK_NAME_LIST = ["GoldenLuck", "BlueLuck"];
+    Rotary.LUCK_INDEX_LIST = [1012, 1024];
 
     //*特殊类型
     Rotary.SPECIAL_TYPE_NAME_LIST = {
@@ -83,4 +82,11 @@
         "Orange",
         "Apple"
     ];
+
+    //*猜大小类型
+    Rotary.GUESS_SIZE_TYPE = {
+        LOW: "1-6",
+        HIGH: "8-13",
+        ZERO: "7"
+    };
 } (Papaya.Fruit));
