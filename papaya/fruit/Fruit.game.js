@@ -1,7 +1,5 @@
 (function(root) {
     var _super = root.Game;
-    var Fruit = root.Fruit;
-    var Utils = root.Utils;
     var Rotary = root.Fruit.Rotary;
     var Logic = root.Fruit.Logic;
 
@@ -11,7 +9,7 @@
         Game.super(this, opts);
 
         //private members
-        
+
         //public members
         this.id             = root.Game.ID_FRUIT;
 
@@ -20,7 +18,7 @@
         this.betInfo        = {};
         this.betTotal       = 0;
 
-        this.bonus          = 0;
+        this.bonusWin       = 0;
 
         this.init();
     };
@@ -117,6 +115,49 @@
             }
 
             return bonus;
+        },
+
+        guessTheSizeOf: function (betInfo) {
+            var result = {
+                errCode: null,
+                randNum: 1,
+                bonusWin: 0
+            };
+
+            var bonus = 0;
+            var betNum = betInfo.bet;
+            var betType = betInfo.betType || Rotary.GUESS_SIZE_TYPE.LOW;
+            var betLimit = betNum * 2;
+
+            if (betNum == 0) {
+                result.errCode = Game.ERR_CODE.NOT_BET;
+                return result;
+            }
+
+            if (betNum > betLimit) {
+                result.errCode = Game.ERR_CODE.EXCEED_BETS;
+                return result;
+            }
+
+            var randNum = Logic.getGuessNum();
+            var randType = Logic.getGuessNumType(randNum);
+
+            if (betType == randType) {
+                bonus = betNum * 2;
+            }
+            else {
+                bonus = -betNum;
+                betNum = 0;
+            }
+
+            result.bonusWin = bonus;
+            this.bonusWin = bonus;
+
+            result.randNum = randNum;
+
+            this.betTotal = betNum;
+
+            return result;
         }
     });
 
@@ -129,6 +170,7 @@
     Game.STATE.ENDED            = 9;
 
     Game.ERR_CODE = {
-        NOT_BET: 10001 //*没有下注
+        NOT_BET: 10001, //*没有下注
+        EXCEED_BETS: 10002 //*超过下注金额
     };
 }(Papaya));
