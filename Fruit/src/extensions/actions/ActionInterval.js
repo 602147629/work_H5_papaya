@@ -1658,3 +1658,50 @@ var TargetedAction = (function (_super){
     };
     return TargetedAction;
 })(ActionInterval);
+
+var NumberTo = (function(_super) {
+    function NumberTo() {
+        NumberTo.super(this);
+
+        this.__from = 0;
+        this.__to = 0;
+        this.__delta = 0;
+    }
+
+    Laya.class(NumberTo, "NumberTo", _super);
+
+    NumberTo.prototype.initWithDuration = function(duration, from, to) {
+        if (_super.prototype.initWithDuration.call(this, duration)) {
+            this.__from = from;
+            this.__to = to;
+            this.__delta = to - from;
+
+            return true;
+        }
+        return false;
+    };
+
+    NumberTo.prototype.startWithTarget = function(target) {
+        _super.prototype.startWithTarget.call(this, target);
+
+        if (target.hasOwnProperty("text")) {
+            target.text = this.__from;
+        }
+    };
+
+    NumberTo.prototype.update = function(t) {
+        t = this._computeEaseTime(t);
+
+        if (this._target.hasOwnProperty("text")) {
+            this._target.text = this.__from + Math.floor(this.__delta * t);
+        }
+    };
+
+    NumberTo.create = function(duration, from, to) {
+        var action = new NumberTo();
+        action.initWithDuration(duration, from, to);
+        return action;
+    };
+
+    return NumberTo;
+})(ActionInterval);
