@@ -270,12 +270,27 @@ var SingleAlone = (function(_super) {
 
         data = game.betOn(params.bet);
         data.player = {
-            balance: App.player.balance - game.betTotal + game.bonus
+            balance: App.player.balance - game.betTotal + game.bonusWin
         };
 
         return data;
     };
 
+    SingleAlone.response['/fruit/guessTheSizeOf'] = function(params) {
+        var data = {};
+        var game = App.game = new Fruit.Game();
 
+        var betInfo = {
+            bet: params.bet,
+            betType: params.betType
+        };
+
+        data = game.guessTheSizeOf(betInfo);
+        data.player = {
+            balance: App.player.balance + game.bonusWin - game.betTotal
+        };
+
+        return data;
+    };
     return SingleAlone;
 }(NetManager));
