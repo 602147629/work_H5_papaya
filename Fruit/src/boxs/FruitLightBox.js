@@ -35,6 +35,7 @@ var FruitLightBox = (function(_super) {
     FruitLightBox.prototype.move = function () {
         var endPos = this.getNextMovePosition();
         var moveAction = Place.create(endPos.x, endPos.y);
+        App.uiManager.setFruitGlowByIndex(this.nextIndex - 1);
         var self = this;
         var callBack = CallFunc.create(Laya.Handler.create(this, function () {
             if (self.destroyTurn != 0) {
@@ -45,6 +46,7 @@ var FruitLightBox = (function(_super) {
             }
 
             if (!(self.wasTurn >= self.totalTurns && self.endIndex == self.nextIndex - 1)) {
+                App.uiManager.setFruitUnGlowByIndex(self.nextIndex - 1);
                 self.move();
             }
             else {
