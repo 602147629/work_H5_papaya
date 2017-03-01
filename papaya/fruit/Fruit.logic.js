@@ -247,4 +247,27 @@
         return multiple;
     };
 
+    Logic.getGuessNum = function () {
+        var randNum = 1;
+        randNum = Utils.random_number(12) + 1;
+        return randNum;
+    };
+
+    Logic.getGuessNumType = function (randNum) {
+        randNum = randNum || 1;
+        var randType = Rotary.GUESS_SIZE_TYPE.LOW;
+
+        if (randNum >=1 && randNum <= 6) {
+            randType = Rotary.GUESS_SIZE_TYPE.LOW;
+        }
+        else if (randNum >= 8 && randNum <= 13) {
+            randType = Rotary.GUESS_SIZE_TYPE.HIGH;
+        }
+        else {
+            randType = Rotary.GUESS_SIZE_TYPE.ZERO;
+        }
+
+        return randType;
+    }
+
 }(Papaya.Fruit));
