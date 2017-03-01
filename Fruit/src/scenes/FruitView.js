@@ -14,17 +14,14 @@ var FruitMainView = (function(_super) {
         this.fruitBetLabelList      = {};
         this.fruitLightList         = [];
         this.fruitBettingList       = {};//*下注列表
-        this.rotatingLightInfoList  = [];
         this.lowMultipleImgs        = [];
         this.highMultipleImgs       = [];
+        this.rotaryFruitBoxList     = [];
 
         this.bonusWin               = 0;//*奖励
         this.balance                = 0;//*手上的赌金
         this.betFactor              = 1;//*下注因数
-        this.lastLightByFruitIndex  = 0;
 
-        this.totalByWillShowLight   = 0;
-        this.stoppedLigths          = 0;//*已经停下的灯的个数
         this.multiples              = {low: 10, high: 20};
         this.guessCanBetTotal       = 0;
         this.guessedNum             = 0;//*猜大小的结果
@@ -32,6 +29,8 @@ var FruitMainView = (function(_super) {
         this.canBetFruit            = true;
         this.canGuessNum            = false;
         this.canTouchGoBtn          = false;
+
+        this.recordItemTotal        = 30;
 
         this.gameState              = FruitMainView.STATE_GAME_INIT;
     }
@@ -142,10 +141,12 @@ var FruitMainView = (function(_super) {
             rotaryFruit = new FruitBox(fruit);
             singleCell.addChild(rotaryFruit);
 
+            this.rotaryFruitBoxList.push(rotaryFruit);
             this.rotaryFruitCellList.push(singleCell);
         }
 
         App.uiManager.setAllRotaryFruits(this.rotaryFruitCellList);
+        App.uiManager.setRotaryFruitBoxList(this.rotaryFruitBoxList);
     };
 
     FruitMainView.prototype.initRotaryLabelShow = function () {
@@ -228,8 +229,12 @@ var FruitMainView = (function(_super) {
     };
 
     FruitMainView.prototype.setCreditLabText = function (balance) {
+        var oldBlance = Number(this.creditLab.text);
         balance = balance || this.balance;
-        this.creditLab.text = balance;
+        App.actionManager.add(
+            NumberTo.create(0.5, oldBlance, balance),
+            this.creditLab
+        );
     };
 
     FruitMainView.prototype.setBetFactorLabText = function (betFactor) {
@@ -238,8 +243,12 @@ var FruitMainView = (function(_super) {
     };
 
     FruitMainView.prototype.setBonusWinLabText = function (bonus) {
+        var oldbonus = Number(this.bonusWinLab.text);
         bonus = bonus || this.bonusWin;
-        this.bonusWinLab.text = bonus;
+        App.actionManager.add(
+            NumberTo.create(0.5, oldbonus, bonus),
+            this.bonusWinLab
+        );
     };
 
     FruitMainView.prototype.setBettingLabelText = function (fruitName) {
@@ -307,11 +316,11 @@ var FruitMainView = (function(_super) {
 
         switch (guessType) {
             case FruitMainView.GUESS_TYPE.Low: {
-                type = Rotary.GUESS_SIZE_TYPE.LOW;
+                type = this.rotaryGuessType.LOW;
                 break;
             }
             case FruitMainView.GUESS_TYPE.High: {
-                type = Rotary.GUESS_SIZE_TYPE.HIGH;
+                type = this.rotaryGuessType.HIGH;
                 break;
             }
             default: {
@@ -473,8 +482,6 @@ var FruitMainView = (function(_super) {
 
     FruitMainView.prototype.updateGameStateToCanBet = function () {
         this.bonusWin = 0;
-        this.stoppedLigths = 0;
-        this.totalByWillShowLight = 0;
         this.guessCanBetTotal = 0;
 
         this.setCreditLabText(App.player.balance);
@@ -496,71 +503,22 @@ var FruitMainView = (function(_super) {
 
         App.player.update(result.player);
 
-        var fruitList = result.fruits;
+        this._resultFruitObj = result.fruits;
+        this._resultFruitObjKeys = Object.keys(this._resultFruitObj);
+        this._resultFruitObjKeysLength = this._resultFruitObjKeys.length;
 
-        this._fruitResultInRound = fruitList;
+        this._runningObjIndex = 0;
+        this._runningLightIndex = 0;
+
+        this._endPos = 0;
+
+        this.lightRotating();
 
         this.bonusWin = result.bonusWin;
         this.multiples = result.multiples;
         this.guessCanBetTotal = this.bonusWin * 2;
 
-
-        //var fruitType = null;
-        //var fruits = null;
-        //var fruitInfoIndex = null;
-        //var fruitId = 0;
-        //var startIndex = this.lastLightByFruitIndex;
-        //var endIndex = 0;
-        //var luckIndex = 0;
-        //var totalTurns = 2;
-        //var speed = 0.05;
-        //var lightInfoList = [];
-        //
-        //for (fruitType in fruitList) {
-        //    fruits = fruitList[fruitType];
-        //    for (fruitInfoIndex in fruits) {
-        //        this.totalByWillShowLight ++;
-        //        fruitId = fruits[fruitInfoIndex].id;
-        //
-        //        if (typeof (fruitId) != "number") {
-        //            var rand = Math.floor(Math.random() * fruitId.length);
-        //            fruitId = fruitId[rand];
-        //        }
-        //
-        //        endIndex = (fruitId % 1000) - 1;
-        //
-        //        if (endIndex == 11 || endIndex == 23) {
-        //            luckIndex = endIndex;
-        //        }
-        //
-        //        if (this.totalByWillShowLight > 1) {
-        //            totalTurns = 0;
-        //            speed = 0.07
-        //        }
-        //
-        //        if (fruitType == "luck") {
-        //            totalTurns = 0;
-        //            startIndex = luckIndex;
-        //            speed = 0.1;
-        //        }
-        //
-        //        var info = {
-        //            startIndex: startIndex,
-        //            endIndex: endIndex,
-        //            totalTurns: totalTurns,
-        //            moveSpeed: speed
-        //        };
-        //
-        //        lightInfoList.push(info);
-        //        this.lastLightByFruitIndex = endIndex;
-        //        startIndex = endIndex;
-        //    }
-        //}
-        //
-        //this.rotatingLightInfoList = lightInfoList;
-        //this.lightRotating();
-        //
-        //this.multipleLightMoving();
+        this.multipleLightMoving();
     };
 
     FruitMainView.prototype.cleanFruitLights = function () {
@@ -575,44 +533,66 @@ var FruitMainView = (function(_super) {
     };
 
     FruitMainView.prototype.lightRotating = function () {
-        var lightInfoList = this.rotatingLightInfoList;
-        if (lightInfoList.length <= 0) {
+        var runningObjIndex = this._runningObjIndex;
+        var runningObjName = this._resultFruitObjKeys[runningObjIndex];
+        var runningFruitList = this._resultFruitObj[runningObjName];
+
+        this._runningObjLength = runningFruitList.length;
+
+        if (this._runningObjLength <= 0) {
+            this.lightStoppedMove();
             return;
         }
 
-        var lightIndex = this.stoppedLigths;
-        var lightInfo = lightInfoList[lightIndex];
-        var light = new FruitLightBox(lightInfo);
+        var endIndex = runningFruitList[this._runningLightIndex];
+        var info = {
+            startIndex: this._endPos,
+            endIndex: endIndex,
+            totalTurns: 2,
+            moveSpeed: 0.1
+        };
+        var light = new FruitLightBox(info);
         light.on(FruitLightBox.STOP_MOVE, this, this.lightStoppedMove);
         this.fruitBgBox.addChild(light);
         this.fruitLightList.push(light);
         light.move();
 
-        if (lightIndex == 0) {
-            //*装饰灯
-            for (var index = 1; index < 3; index ++) {
-                var startIndex = lightInfo.startIndex - index;
-                if (startIndex < 0) {
-                    startIndex = 24 + startIndex;
-                }
+        this._endPos = endIndex;
 
-                lightInfo = {
-                    startIndex: startIndex,
-                    endIndex: 0,
-                    destroyTurn: 1
-                };
-
-                var decorateLight = new FruitLightBox(lightInfo);
-                this.fruitBgBox.addChild(decorateLight);
-                decorateLight.move();
-            }
-        }
+        //if (this._runningLightIndex == 0 && this._runningObjIndex == 0) {
+        //    //*装饰灯
+        //    for (var index = 1; index < 3; index ++) {
+        //        var startIndex = this._endPos - index;
+        //        if (startIndex < 0) {
+        //            startIndex = 24 + startIndex;
+        //        }
+        //
+        //        var lightInfo = {
+        //            startIndex: startIndex,
+        //            endIndex: 0,
+        //            destroyTurn: 1,
+        //            moveSpeed: 0.07
+        //        };
+        //
+        //        var decorateLight = new FruitLightBox(lightInfo);
+        //        this.fruitBgBox.addChild(decorateLight);
+        //        decorateLight.move();
+        //    }
+        //}
     };
 
     FruitMainView.prototype.lightStoppedMove = function () {
-        this.stoppedLigths ++;
+        this._runningLightIndex ++;
         this.multipleLightStopMoving();
-        if (this.stoppedLigths < this.totalByWillShowLight) {
+        if (this._runningLightIndex < this._runningObjLength) {
+            this.lightRotating();
+        }
+        else {
+            this._runningLightIndex = 0;
+            this._runningObjIndex ++;
+        }
+
+        if (this._runningObjIndex < this._resultFruitObjKeysLength) {
             this.lightRotating();
         }
         else {
@@ -627,7 +607,7 @@ var FruitMainView = (function(_super) {
         this.ligthsBlinkOnView();
 
         //*记录显示
-        var fruitResultInRound = this._fruitResultInRound;
+        var fruitResultInRound = this._resultFruitObj;
         for (var index in fruitResultInRound) {
             this.addRecordItem(fruitResultInRound[index]);
         }
@@ -649,9 +629,10 @@ var FruitMainView = (function(_super) {
             return;
         }
 
+        //*处理列表溢出
         var listNextLength = boxItemLength + fruitLength;
-        if (listNextLength > 30) {
-            var diff = listNextLength - 30;
+        if (listNextLength > this.recordItemTotal) {
+            var diff = listNextLength - this.recordItemTotal;
             for (var index = 0; index < diff; index ++) {
                 this.recordItemListBox.deleteItem(index);
             }
@@ -659,8 +640,11 @@ var FruitMainView = (function(_super) {
             this.recordItemListBox.refresh();
         }
 
+        //*添加列表显示
         for (var fruitIndex in fruitList) {
-            this.recordItemListBox.addItem(fruitList[fruitIndex]);
+            var id = fruitList[fruitIndex];
+            var fruitInfo = Rotary.ROTARY_FRUITS[id];
+            this.recordItemListBox.addItem(fruitInfo);
         }
 
         this.recordItemListBox.tweenTo(this.recordItemListBox.length);
@@ -681,15 +665,19 @@ var FruitMainView = (function(_super) {
             this.fruitLightList[index].stopLightBlink();
         }
 
+        for (var glowIndex in this.rotaryFruitBoxList) {
+            this.rotaryFruitBoxList[glowIndex].setFruitUnLight();
+        }
+
         this.lowLight.stopLightBlink();
         this.highLight.stopLightBlink();
     };
 
     FruitMainView.prototype.multipleLightMoving = function () {
-        //var lowLightEndIndex = Rotary.RANDOM_MULTIPLE_LOW.indexOf(this.multipleByLow);
-        //var highLightEndIndex = Rotary.RANDOM_MULTIPLE_HIGH.indexOf(this.multipleByHigh);
-        //this.lowLight.startMove(lowLightEndIndex);
-        //this.highLight.startMove(highLightEndIndex);
+        var lowLightEndIndex = Rotary.RANDOM_MULTIPLE_LOW.indexOf(this.multiples.low);
+        var highLightEndIndex = Rotary.RANDOM_MULTIPLE_HIGH.indexOf(this.multiples.high);
+        this.lowLight.startMove(lowLightEndIndex);
+        this.highLight.startMove(highLightEndIndex);
     };
 
     FruitMainView.prototype.multipleLightStopMoving = function () {
