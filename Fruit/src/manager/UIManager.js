@@ -3,6 +3,7 @@ var UIManager = (function(_super) {
     function UIManager() {
         UIManager.super(this);
         this.allRotaryFruits = null;
+        this.rotaryFruitBoxList = null;
     }
 
     Laya.class(UIManager, "UIManager", _super);
@@ -48,6 +49,28 @@ var UIManager = (function(_super) {
         return this.allRotaryFruits;
     };
 
+    UIManager.prototype.setRotaryFruitBoxList = function (boxList) {
+        this.rotaryFruitBoxList = boxList;
+    };
+
+    UIManager.prototype.setFruitGlowByIndex = function (index) {
+        if (typeof (index) == "number"){
+            var lightFruit = this.rotaryFruitBoxList[index];
+            if (lightFruit) {
+                lightFruit.setFruitLighting();
+            }
+        }
+    };
+
+    UIManager.prototype.setFruitUnGlowByIndex = function (index) {
+        if (typeof (index) == "number"){
+            var lightFruit = this.rotaryFruitBoxList[index];
+            if (lightFruit) {
+                lightFruit.setFruitUnLight();
+            }
+        }
+    };
+
     UIManager.prototype.getBigFruitIconPath = function (fruitName) {
         if (fruitName == null) {
             return;
@@ -62,6 +85,22 @@ var UIManager = (function(_super) {
         }
 
         return UIManager.ICON_MEDDLE[fruitName];
+    };
+
+    UIManager.prototype.getMiddleGlowFruitIconPath = function (fruitName) {
+        if (fruitName == null) {
+            return;
+        }
+
+        return UIManager.ICON_MEDDLE_GLOW[fruitName];
+    };
+
+    UIManager.prototype.getBigGlowFruitIconPath = function (fruitName) {
+        if (fruitName == null) {
+            return;
+        }
+
+        return UIManager.ICON_BIG_GLOW[fruitName];
     };
 
     UIManager.ICON_BIG = {
@@ -86,6 +125,30 @@ var UIManager = (function(_super) {
         "Pomelo": "assets/ui.main/icon_yz-M.png",
         "Orange": "assets/ui.main/icon_jz-M.png",
         "Apple": "assets/ui.main/icon_pg-M.png"
+    };
+
+    UIManager.ICON_BIG_GLOW = {
+        "GG": "assets/ui.main/icon_0007_gg_gl2.png",
+        "77": "assets/ui.main/icon_0005_77_gl2.png",
+        "Star": "assets/ui.main/icon_0013_xx_gl2.png",
+        "Watermelon": "assets/ui.main/icon_0003_xg_gl2.png",
+        "Bell": "assets/ui.main/icon_0011_ld_gl2.png",
+        "Pomelo": "assets/ui.main/icon_0001_yz_gl2.png",
+        "Orange": "assets/ui.main/icon_0017_jz-gl2.png",
+        "Apple": "assets/ui.main/icon_0009_pg_gl2.png",
+        "BlueLuck": "assets/ui.main/icon_0014_luck_gl.png",
+        "GoldenLuck": "assets/ui.main/icon_0015_luck_gl2.png"
+    };
+
+    UIManager.ICON_MEDDLE_GLOW = {
+        "GG": "assets/ui.main/icon_0006_gg_gl.png",
+        "77": "assets/ui.main/icon_0004_77_gl.png",
+        "Star": "assets/ui.main/icon_0012_xx_gl.png",
+        "Watermelon": "assets/ui.main/icon_0002_xg_gl.png",
+        "Bell": "assets/ui.main/icon_0010_ld_gl.png",
+        "Pomelo": "assets/ui.main/icon_0000_yz_gl.png",
+        "Orange": "assets/ui.main/icon_0016_jz-gl.png",
+        "Apple": "assets/ui.main/icon_0008_pg_gl.png"
     };
 
     return UIManager;
