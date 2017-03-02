@@ -293,8 +293,7 @@ var FruitMainView = (function(_super) {
         }
         this.fruitBettingList[fruitName] = betting;
         this.setBettingLabelText(fruitName);
-
-        var remainBalance = this.balance - this.betFactor;
+        var remainBalance = this.balance - betting;
         this.setCreditLabText(remainBalance);
         this.balance = remainBalance;
     };
@@ -483,8 +482,10 @@ var FruitMainView = (function(_super) {
     FruitMainView.prototype.updateGameStateToCanBet = function () {
         this.bonusWin = 0;
         this.guessCanBetTotal = 0;
+        this.balance = App.player.balance;
+        this._luckPos = null;
 
-        this.setCreditLabText(App.player.balance);
+        this.setCreditLabText();
         this.setBonusWinLabText();
         this.initFruitBettingList();
 
@@ -544,41 +545,73 @@ var FruitMainView = (function(_super) {
             return;
         }
 
+        if (this._runningObjIndex == 1) {
+            var luckPos = this.getLuckyPosThisRound();
+            var startIndex = luckPos;
+        }
+        else {
+            startIndex = this._endPos;
+        }
+
         var endIndex = runningFruitList[this._runningLightIndex];
         var info = {
-            startIndex: this._endPos,
+            startIndex: startIndex,
             endIndex: endIndex,
-            totalTurns: 2,
-            moveSpeed: 0.1
+            totalTurns: 4,
+            objectIndex: this._runningObjIndex,
+            lightIndex: this._runningLightIndex
         };
         var light = new FruitLightBox(info);
-        light.on(FruitLightBox.STOP_MOVE, this, this.lightStoppedMove);
+        light.on(FruitLightBox.CAN_CREATE_NEXT_LIGHT, this, this.lightStoppedMove);
+        light.on(FruitLightBox.STOP_MOVE, this, this.multipleLightStopMoving);
         this.fruitBgBox.addChild(light);
         this.fruitLightList.push(light);
         light.move();
 
-        this._endPos = endIndex;
+        if (this._runningObjIndex != 1) {
+            this._endPos = endIndex;
+        }
 
-        //if (this._runningLightIndex == 0 && this._runningObjIndex == 0) {
-        //    //*装饰灯
-        //    for (var index = 1; index < 3; index ++) {
-        //        var startIndex = this._endPos - index;
-        //        if (startIndex < 0) {
-        //            startIndex = 24 + startIndex;
-        //        }
-        //
-        //        var lightInfo = {
-        //            startIndex: startIndex,
-        //            endIndex: 0,
-        //            destroyTurn: 1,
-        //            moveSpeed: 0.07
-        //        };
-        //
-        //        var decorateLight = new FruitLightBox(lightInfo);
-        //        this.fruitBgBox.addChild(decorateLight);
-        //        decorateLight.move();
-        //    }
-        //}
+        if (this._runningLightIndex == 0 && this._runningObjIndex == 0) {
+            //*装饰灯
+            for (var index = 1; index < 3; index ++) {
+                startIndex = startIndex - index;
+                if (startIndex < 0) {
+                    startIndex = 24 + startIndex;
+                }
+                var destroyTurn = 3 - index;
+                var lightInfo = {
+                    startIndex: startIndex,
+                    endIndex: endIndex,
+                    totalTurns: 4,
+                    objectIndex: this._runningObjIndex,
+                    lightIndex: this._runningLightIndex,
+                    destroyTurn: destroyTurn
+                };
+
+                var decorateLight = new FruitLightBox(lightInfo);
+                this.fruitBgBox.addChild(decorateLight);
+                decorateLight.move();
+            }
+        }
+    };
+
+    FruitMainView.prototype.getLuckyPosThisRound = function () {
+        if (!this._luckyPos) {
+            var rotaryFruitList = this._resultFruitObj.rotaryFruits;
+            var lucyIndexList = Rotary.LUCK_INDEX_LIST;
+            var fruitIndex = 0;
+            for (var index in rotaryFruitList) {
+                var id = rotaryFruitList[index];
+                fruitIndex = id + 1001;
+                if (lucyIndexList.indexOf(fruitIndex) != -1) {
+                    this._luckyPos = id;
+                    break;
+                }
+            }
+        }
+
+        return this._luckyPos;
     };
 
     FruitMainView.prototype.lightStoppedMove = function () {
@@ -586,6 +619,7 @@ var FruitMainView = (function(_super) {
         this.multipleLightStopMoving();
         if (this._runningLightIndex < this._runningObjLength) {
             this.lightRotating();
+            return;
         }
         else {
             this._runningLightIndex = 0;
