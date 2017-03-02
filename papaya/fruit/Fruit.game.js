@@ -97,20 +97,21 @@
                     var id = fruit.id;
                     var bet = Number(this.betInfo[fruitName]);
 
-                    if (multiple <= 1) {
+                    if (Rotary.LUCK_INDEX_LIST.indexOf(id) == -1) {
+                        if (multiple <= 1) {
+                            if (bigTripleFruits.indexOf(id) != -1) {
+                                multiple = this.multiples.high;
+                            }
+                            else if (smallTripleFruits.indexOf(id) != -1) {
+                                multiple = this.multiples.low;
+                            }
+                            else if (quadruple.indexOf(id) != -1){
+                                multiple = Rotary.MULTIPLE_BY_APPLE;
+                            }
+                        }
 
-                        if (bigTripleFruits.indexOf(id) != -1) {
-                            multiple = this.multiples.high;
-                        }
-                        else if (smallTripleFruits.indexOf(id) != -1) {
-                            multiple = this.multiples.low;
-                        }
-                        else if (quadruple.indexOf(id) != -1){
-                            multiple = Rotary.MULTIPLE_BY_APPLE;
-                        }
+                        bonus += bet * multiple;
                     }
-
-                    bonus += bet * multiple;
                 }
             }
 
