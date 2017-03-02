@@ -82,8 +82,9 @@
         var luckFruitIndexList = Rotary.LUCK_INDEX_LIST;
 
         fruitIndex = Utils.calcWeight(rotaryFruits);
-        if (luckFruitIndexList.indexOf(fruitIndex) != -1) {
-            if (!this.hasLuckFruit) {
+        var index = fruitIndex + 1001;
+        if (luckFruitIndexList.indexOf(index) != -1) {
+            if (this.hasLuckFruit) {
                 fruitIndex = this.getRandomFruitIndex();
             }
             else {
@@ -104,7 +105,7 @@
         var fruitIndex = 0;
 
         if (rand < 5) {
-            result.isEatLight = true;
+            isEatLight = true;
         }
         else if (rand >= 5 && rand < 80) {
             var giveLightTotal = this.getGiveLightTotal();
