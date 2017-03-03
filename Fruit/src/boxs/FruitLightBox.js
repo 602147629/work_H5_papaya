@@ -7,11 +7,11 @@ var FruitLightBox = (function(_super) {
         this.startIndex = posInfo.startIndex;
         this.objectIndex = posInfo.objectIndex;
         this.lightIndex = posInfo.lightIndex;
-        this.moveSpeed = posInfo.moveSpeed || 0.05;
+
         //*到第几圈的时候销毁
         this.destroyTurn = posInfo.destroyTurn;
         //*总共要转的圈数
-        this.totalTurns = posInfo.totalTurns;
+        this.totalTurns = 3;//posInfo.totalTurns;
 
         this.nextIndex = this.startIndex + 1;
 
@@ -22,6 +22,13 @@ var FruitLightBox = (function(_super) {
         this.speedList = FruitLightBox.TURN_TYPE_BY_SPEED[0];
 
         this.canDoBlinkAction = false;
+
+        this.moveTime = 1;
+
+        this.moveSpeed = 105;
+        this.acceleration = -5;
+
+        this.moveTotal = 0;
 
         this.init();
     }
@@ -35,54 +42,46 @@ var FruitLightBox = (function(_super) {
         };
         this.setPositions(startPos);
 
-        if (this.objectIndex == 0) {
-            this.totalTurns = FruitLightBox.MAX_TRUN - this.lightIndex;
-            if (this.totalTurns <= 0) {
-                this.totalTurns = 1;
-            }
-        }
-        else {
-            this.totalTurns = 0;
-        }
-        this.speedList = FruitLightBox.TURN_TYPE_BY_SPEED[this.totalTurns];
-        this.moveSpeed = this.speedList[0];
+        Laya.timer.loop(400, this, this.updateTime);
+    };
+
+    FruitLightBox.prototype.updateTime = function () {
+        this.moveTime += 1;
     };
 
     FruitLightBox.prototype.move = function () {
         var endPos = this.getNextMovePosition();
-        var moveAction = Place.create(endPos.x, endPos.y);
+        this.x = endPos.x;
+        this.y = endPos.y;
+
         App.uiManager.setFruitGlowByIndex(this.nextIndex - 1);
-        var self = this;
-        var callBack = CallFunc.create(Laya.Handler.create(this, function () {
-            if (self.destroyTurn != 0) {
-                if (self.wasTurn >= self.destroyTurn) {
-                    self.dispose();
-                    return;
-                }
-            }
 
-            if (!(self.wasTurn >= self.totalTurns && self.endIndex == self.nextIndex - 1)) {
-                App.uiManager.setFruitUnGlowByIndex(self.nextIndex - 1);
-                self.move();
-            }
-            else {
-                self.event(FruitLightBox.STOP_MOVE);
-                //*已经停止
-                self.willCreateNextLightBlink();
-            }
-        }));
-
-        if (!this.moveSpeed) {
-            if (this.totalTurns <= 1) {
-                this.moveSpeed = 0.09;
-            }
-            else {
-                this.moveSpeed = FruitLightBox.MIN_SPEED;
+        if (this.destroyTurn != 0) {
+            if (this.wasTurn >= this.destroyTurn) {
+                this.dispose();
+                return;
             }
         }
-        this.sequence = Sequence.create(moveAction, DelayTime.create(this.moveSpeed) ,callBack);
 
-        App.actionManager.addAction(this.sequence, this);
+        var moveSpeed = this.calcMovingSpeed();
+        console.log(moveSpeed);
+        if (moveSpeed <= 0){
+            moveSpeed = this.moveSpeed + this.acceleration;
+        }
+
+        if (!(this.wasTurn >= this.totalTurns && this.endIndex == this.nextIndex - 1)) {
+            App.uiManager.setFruitUnGlowByIndex(this.nextIndex - 1);
+            Laya.timer.once(Math.ceil(550/moveSpeed*100), this, this.move);
+        }
+        else {
+            this.event(FruitLightBox.STOP_MOVE);
+            //*已经停止
+            this.willCreateNextLightBlink();
+        }
+    };
+
+    FruitLightBox.prototype.calcMovingSpeed = function () {
+        return (this.moveSpeed + this.acceleration * this.moveTime) * this.moveTime;
     };
 
     FruitLightBox.prototype.setPositions = function (pos) {
@@ -101,7 +100,6 @@ var FruitLightBox = (function(_super) {
 
         if (index == this.startIndex) {
             this.wasTurn ++;
-            this.moveSpeed = this.speedList[this.wasTurn];
         }
 
         var result = {
