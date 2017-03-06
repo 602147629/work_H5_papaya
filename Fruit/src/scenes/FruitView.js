@@ -512,6 +512,7 @@ var FruitMainView = (function(_super) {
         this._runningLightIndex = 0;
 
         this._endPos = 0;
+        this._totalLightIndex = 0;
 
         this.lightRotating();
 
@@ -534,6 +535,7 @@ var FruitMainView = (function(_super) {
     };
 
     FruitMainView.prototype.lightRotating = function () {
+        this._totalLightIndex ++;
         var runningObjIndex = this._runningObjIndex;
         var runningObjName = this._resultFruitObjKeys[runningObjIndex];
         var runningFruitList = this._resultFruitObj[runningObjName];
@@ -557,9 +559,7 @@ var FruitMainView = (function(_super) {
         var info = {
             startIndex: startIndex,
             endIndex: endIndex,
-            totalTurns: 4,
-            objectIndex: this._runningObjIndex,
-            lightIndex: this._runningLightIndex
+            lightIndex: this._totalLightIndex
         };
         var light = new FruitLightBox(info);
         light.on(FruitLightBox.CAN_CREATE_NEXT_LIGHT, this, this.lightStoppedMove);
@@ -575,7 +575,7 @@ var FruitMainView = (function(_super) {
         if (this._runningLightIndex == 0 && this._runningObjIndex == 0) {
             //*装饰灯
             for (var index = 1; index < 3; index ++) {
-                startIndex = startIndex - index;
+                startIndex = startIndex - 1;
                 if (startIndex < 0) {
                     startIndex = 24 + startIndex;
                 }
@@ -583,10 +583,7 @@ var FruitMainView = (function(_super) {
                 var lightInfo = {
                     startIndex: startIndex,
                     endIndex: endIndex,
-                    totalTurns: 4,
-                    objectIndex: this._runningObjIndex,
-                    lightIndex: this._runningLightIndex,
-                    destroyTurn: destroyTurn
+                    destroyIndex:index
                 };
 
                 var decorateLight = new FruitLightBox(lightInfo);
