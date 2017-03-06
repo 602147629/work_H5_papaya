@@ -5,13 +5,11 @@ var FruitLightBox = (function(_super) {
         this.allFruitsPosList = App.uiManager.getAllRotaryFruits();
         this.endIndex = posInfo.endIndex;
         this.startIndex = posInfo.startIndex;
-        this.objectIndex = posInfo.objectIndex;
-        this.lightIndex = posInfo.lightIndex;
 
-        //*到第几圈的时候销毁
-        this.destroyTurn = posInfo.destroyTurn;
-        //*总共要转的圈数
-        this.totalTurns = 3;//posInfo.totalTurns;
+        //*是否要中途销毁
+        this.destroyIndex = posInfo.destroyIndex;
+
+        this.lightIndex = posInfo.lightIndex;
 
         this.nextIndex = this.startIndex + 1;
 
@@ -19,16 +17,11 @@ var FruitLightBox = (function(_super) {
         //*已经转的圈数记录
         this.wasTurn = 0;
 
-        this.speedList = FruitLightBox.TURN_TYPE_BY_SPEED[0];
-
         this.canDoBlinkAction = false;
 
         this.moveTime = 1;
 
-        this.moveSpeed = 105;
-        this.acceleration = -5;
-
-        this.moveTotal = 0;
+        this.acceleration = FruitLightBox.ACCELERATION;
 
         this.init();
     }
@@ -43,6 +36,10 @@ var FruitLightBox = (function(_super) {
         this.setPositions(startPos);
 
         Laya.timer.loop(400, this, this.updateTime);
+
+        if (this.lightIndex > 1) {
+            this.acceleration = FruitLightBox.ACCELERATION - 3;
+        }
     };
 
     FruitLightBox.prototype.updateTime = function () {
@@ -56,32 +53,45 @@ var FruitLightBox = (function(_super) {
 
         App.uiManager.setFruitGlowByIndex(this.nextIndex - 1);
 
-        if (this.destroyTurn != 0) {
-            if (this.wasTurn >= this.destroyTurn) {
-                this.dispose();
+        var moveSpeed = this.calcMovingSpeed();
+        if (this.destroyIndex && this.destroyIndex > 0) {
+            switch (this.destroyIndex) {
+                case 1: {
+                    if (moveSpeed >= FruitLightBox.SPEED_CONSTANT * 7) {
+                        this.dispose();
+                    }
+                    break;
+                }
+                case 2: {
+                    if (moveSpeed >= FruitLightBox.SPEED_CONSTANT * 5) {
+                        this.dispose();
+                    }
+                    break;
+                }
+            }
+        }
+
+        var speedMin = 0;
+        if (this.lightIndex > 1) {
+            speedMin = Math.floor(FruitLightBox.SPEED_CONSTANT/Math.abs(this.acceleration));
+        }
+
+        if (moveSpeed <= speedMin) {
+            moveSpeed = FruitLightBox.SPEED_CONSTANT + this.acceleration;
+            if (this.endIndex ==  this.nextIndex - 1) {
+                //*已经停止
+                this.event(FruitLightBox.STOP_MOVE);
+                this.willCreateNextLightBlink();
                 return;
             }
         }
 
-        var moveSpeed = this.calcMovingSpeed();
-        console.log(moveSpeed);
-        if (moveSpeed <= 0){
-            moveSpeed = this.moveSpeed + this.acceleration;
-        }
-
-        if (!(this.wasTurn >= this.totalTurns && this.endIndex == this.nextIndex - 1)) {
-            App.uiManager.setFruitUnGlowByIndex(this.nextIndex - 1);
-            Laya.timer.once(Math.ceil(550/moveSpeed*100), this, this.move);
-        }
-        else {
-            this.event(FruitLightBox.STOP_MOVE);
-            //*已经停止
-            this.willCreateNextLightBlink();
-        }
+        App.uiManager.setFruitUnGlowByIndex(this.nextIndex - 1);
+        Laya.timer.once(Math.ceil(500/moveSpeed*100), this, this.move);
     };
 
     FruitLightBox.prototype.calcMovingSpeed = function () {
-        return (this.moveSpeed + this.acceleration * this.moveTime) * this.moveTime;
+        return (FruitLightBox.SPEED_CONSTANT + this.acceleration * this.moveTime) * this.moveTime;
     };
 
     FruitLightBox.prototype.setPositions = function (pos) {
@@ -155,13 +165,8 @@ var FruitLightBox = (function(_super) {
     FruitLightBox.MIN_SPEED = 0.15;
     FruitLightBox.MAX_TRUN = 4;
 
-    FruitLightBox.TURN_TYPE_BY_SPEED = [
-        [0.07],
-        [0.07],
-        [0.05, 0.07],
-        [0.03, 0.05, 0.07],
-        [0.03, 0.05, 0.07, 0.07]
-    ];
+    FruitLightBox.ACCELERATION = -5;
+    FruitLightBox.SPEED_CONSTANT = 145;
 
     return FruitLightBox;
 }(FruitLightBoxUI));
