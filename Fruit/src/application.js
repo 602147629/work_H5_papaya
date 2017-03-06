@@ -26,6 +26,11 @@ var Application = (function (_super) {
         // Modules
         this.player = null;
 
+        // Layers
+        this.sceneLayer = new Laya.Sprite();
+        this.sceneLayer.zOrder = 1;
+        Laya.stage.addChild(this.sceneLayer);
+
         // Views
         this.logView = null;
         this.tableView = null;
@@ -42,12 +47,18 @@ var Application = (function (_super) {
 
         this.state = Application.STATE_PRELOADING;
         this.runView(this.loaderView);
-
+        var resources = this.assetsManager.getPreload();
         async.series([
+            function (callback) {
+                self.loaderView.setText("正在初始化网络......");
+                self.netManager.init(function() {
+                    callback(null);
+                });
+            },
+
             function (callback) {
                 self.loaderView.setText("正在加载图片......");
 
-                var resources = self.assetsManager.getPreload();
                 var onComplete = function () {
                     callback(null);
                 };
@@ -55,44 +66,39 @@ var Application = (function (_super) {
                     self.loaderView.changeValue(e);
                 };
 
-                Laya.loader.load(resources, Laya.Handler.create(null, onComplete), Laya.Handler.create(null, onProgress, null, false));
+                Laya.loader.load(resources.images, Laya.Handler.create(null, onComplete), Laya.Handler.create(null, onProgress, null, false));
             },
+
+            //function (callback) {
+            //    self.loaderView.setText("正在加载音乐音效......");
+            //    var onComplete = function () {
+            //        callback(null);
+            //    };
+            //    var onProgress = function (e) {
+            //        self.loaderView.changeValue(e);
+            //    };
+            //
+            //    Laya.loader.load(resources.sounds, Laya.Handler.create(null, onComplete), Laya.Handler.create(null, onProgress, null, false));
+            //},
 
             function(callback) {
                 self.loaderView.setText("正在加载字体......");
 
-                var fntResources = self.assetsManager.getFonts();
-                var bmpFont;
-                var fontName = {};
-                var url;
-                var count = 0;
+                var onComplete = function () {
+                    callback(null);
+                };
+                var onProgress = function (e) {
+                    self.loaderView.changeValue(e);
+                };
 
-                function onFontLoaded(bitmapFont) {
-                    //bitmapFont.setSpaceWidth(10);
-                    Laya.Text.registerBitmapFont(fontName[bitmapFont._path], bitmapFont);
-                    count += 1;
+                Laya.loader.load(resources.fonts, Laya.Handler.create(null, onComplete), Laya.Handler.create(null, onProgress, null, false));
+            },
 
-                    var percent = count / fntResources.length;
-                    self.loaderView.changeValue(percent);
-
-                    if (count >= fntResources.length) {
-                        self.loaderView.changeValue(1);
-                        callback(null);
-                    }
-                }
-
-                for (var index in fntResources) {
-                    bmpFont = new Laya.BitmapFont();
-
-                    url = fntResources[index].url;
-
-                    var start = url.lastIndexOf("/") + 1;
-                    var len = url.lastIndexOf(".") - start;
-
-                    fontName[url] = url.substr(start,len);
-
-                    bmpFont.loadFont(url, Laya.Handler.create(this, onFontLoaded, [bmpFont]));
-                }
+            function(callback) {
+                self.loaderView.setText("正在初始化资源......");
+                self.assetsManager.init(function() {
+                    callback(null);
+                });
             },
 
             function(callback) {
@@ -119,6 +125,8 @@ var Application = (function (_super) {
     };
 
     Application.connectServer = function() {
+        this.state = Application.STATE_CONNECTED;
+        return;
         var self = this;
 
         self.state = Application.STATE_CONNECTING;
@@ -143,8 +151,6 @@ var Application = (function (_super) {
         var self = this;
         var onComplete = function(err, data) {
             if (err != null) {
-                //self.state = Application.STATE_AUTHORIZING;
-
                 Laya.timer.once(1000, self, self.accountAuth);
                 return;
             }
@@ -157,16 +163,13 @@ var Application = (function (_super) {
         self.loaderView.setText("正在获取授权...");
         this.state = Application.STATE_AUTHORIZING;
 
-        var api = "/user/auth";
-        var params = {};
-        this.netManager.request(api, params, Laya.Handler.create(null, onComplete));
+        this.netManager.accountAuth(Laya.Handler.create(null, onComplete));
     };
 
     Application.accountSync = function() {
         var self = this;
         var onComplete = function(err, data) {
             if (err != null) {
-                //self.state = Application.STATE_SYNCHRONIZING;
                 Laya.timer.once(1000, self, self.accountSync);
                 return;
             }
@@ -182,23 +185,22 @@ var Application = (function (_super) {
         self.loaderView.setText("正在同步账号...");
         this.state = Application.STATE_SYNCHRONIZING;
 
-        var api = "/user/sync";
-        var params = {};
-        this.netManager.request(api, params, Laya.Handler.create(null, onComplete));
+        this.netManager.accountSync(Laya.Handler.create(null, onComplete));
     };
 
     Application.enter = function() {
         var self = this;
         var onComplete = function(err, data) {
             if (err != null) {
-                //self.state = Application.STATE_ENTERING;
                 Laya.timer.once(1000, self, self.enter);
                 return;
             }
             self.state = Application.STATE_ENTERED;
             self.loaderView.setText("进入成功!");
 
-            console.log("account entered...", data);
+            console.log("account entered...", JSON.stringify(data));
+
+            self.tableView.init();
         };
 
         self.loaderView.setText("正在进入游戏...");
@@ -225,11 +227,11 @@ var Application = (function (_super) {
 
     Application.runView = function(view) {
         if (this._runningView) {
-            Laya.stage.removeChild(this._runningView);
+            this.sceneLayer.removeChild(this._runningView);
         }
 
         this._runningView = view;
-        Laya.stage.addChild(this._runningView);
+        this.sceneLayer.addChild(this._runningView);
     };
 
     Application.start = function() {
@@ -287,6 +289,8 @@ var Application = (function (_super) {
         if (!running) {
             return;
         }
+
+        this._runningView.update && this._runningView.update(dt);
     };
 
     Application.STATE_INITED           = 1;
@@ -303,6 +307,9 @@ var Application = (function (_super) {
     Application.STATE_ENTERED          = 12;
 
     Application.STATE_RUNNING          = 100;
+
+
+    Application.Event                  = {};
 
     return Application;
 }());
