@@ -6,7 +6,7 @@ var NetManager = (function(_super) {
         NetManager.super(this);
 
         // 游戏服务器地址
-        this.service           = null;
+        this.service           = App.config.service;
 
         // 游戏服务器连接
         this.socket            = null;
@@ -21,14 +21,12 @@ var NetManager = (function(_super) {
         this.uuid              = null;
 
         // 认证令牌
-        this.token             = null;
-
-        this.init();
+        this.token             = URLUtils.getParam("token") || null;
     }
 
     Laya.class(NetManager, "NetManager", _super);
 
-    NetManager.prototype.init = function() {
+    NetManager.prototype.init = function(callback) {
         this.socket = new SocketIO();
 
         this.socket.on(SocketIO.CONNECTED, this, this.onServerConnected);
@@ -36,6 +34,8 @@ var NetManager = (function(_super) {
         this.socket.on(SocketIO.ERROR, this, this.onServerError);
         this.socket.on(SocketIO.CLOSED, this, this.onServerClosed);
         this.socket.on(SocketIO.MESSAGE, this, this.onServerMessage);
+
+        callback && callback();
     };
 
     NetManager.prototype.encode = function() {
@@ -68,7 +68,7 @@ var NetManager = (function(_super) {
 
         params.appID        = App.config.appID;
         params.udid         = App.storageManager.getDeviceId();
-        params.signature    = this.encode(params);
+        //params.signature    = this.encode(params);
 
         var url = uri + '?';
 
@@ -88,16 +88,16 @@ var NetManager = (function(_super) {
     };
 
     NetManager.prototype.get = function(url, handler) {
-        var http = new Laya.HttpRequest();
+        var hr = new Laya.HttpRequest();
 
         var onHttpRequestComplete = function() {
-            if (http.data.code == CODE.OK) {
-                handler.runWith([null, http.data.data]);
+            if (hr.data.code == CODE.OK) {
+                handler.runWith([null, hr.data.data]);
             }
             else {
                 var error = {
-                    number: http.data.subcode,
-                    message: http.data.message
+                    number: hr.data.err,
+                    message: hr.data.msg
                 };
                 handler.runWith(error);
             }
@@ -105,7 +105,7 @@ var NetManager = (function(_super) {
 
         var onHttpRequestError = function(e) {
             var error = {
-                number: CODE.HTTP.REQUEST_ERROR,
+                number: CODE.INTERNAL.HTTP_ERROR,
                 message: e
             };
             handler.runWith(error, {});
@@ -117,10 +117,16 @@ var NetManager = (function(_super) {
         //     }
         // };
 
+        // 设置认证token
+        var headers = null;
+        if (this.token) {
+            headers = ["Authorization", "Bearer " + this.token];
+        }
+
         //http.on(Laya.Event.PROGRESS, null, onHttpRequestProgress);
-        http.once(Laya.Event.ERROR, null, onHttpRequestError);
-        http.once(Laya.Event.COMPLETE, null, onHttpRequestComplete);
-        http.send(url, null, 'get', 'json');
+        hr.once(Laya.Event.ERROR, null, onHttpRequestError);
+        hr.once(Laya.Event.COMPLETE, null, onHttpRequestComplete);
+        hr.send(url, null, 'get', 'json', headers);
     };
 
     NetManager.prototype.post = function() {
@@ -134,6 +140,17 @@ var NetManager = (function(_super) {
         var url = this.formatURL(this.service + api, params);
 
         var complete = function(err, data) {
+            // 这里可以先拦截需要统一处理的错误
+            if (err != null) {
+
+            }
+
+            // 这里统一同步账户余额
+            var player = App.player;
+            if (data.balance) {
+                player && player.setBalance(data.balance);
+            }
+
             if (handler) {
                 handler.runWith([err, data]);
             }
@@ -153,6 +170,47 @@ var NetManager = (function(_super) {
         }
 
         this.socket.send(msg);
+    };
+
+    NetManager.prototype.accountAuth = function(handler) {
+        // 如果token不为空，已经获取浏览器重定向参数，可以直接进入下一步
+        if (this.token != null) {
+            handler && handler.runWith([null, {}]);
+            return;
+        }
+
+        var self = this;
+        var complete = function(err, data) {
+            if (err == null) {
+                self.uuid      = data.userID;
+                self.token     = data.token;
+            }
+
+            if (handler) {
+                handler.runWith([err, data]);
+            }
+        };
+
+        var api = "/user/auth";
+        var params = {};
+        this.request(api, params, Laya.Handler.create(null, complete));
+    };
+
+    NetManager.prototype.accountSync = function(handler) {
+        var self = this;
+        var complete = function(err, data) {
+            if (err == null) {
+                self.token     = data.token;
+            }
+
+            if (handler) {
+                handler.runWith([err, data]);
+            }
+        };
+
+        var api = "/user/sync";
+        var params = {};
+        this.request(api, params, Laya.Handler.create(null, complete));
     };
 
     NetManager.prototype.connectServer = function() {
@@ -213,7 +271,8 @@ var SingleAlone = (function(_super) {
     Laya.class(SingleAlone, "SingleAlone", _super);
 
     // @Override
-    SingleAlone.prototype.init = function() {
+    SingleAlone.prototype.init = function(callback) {
+        callback && callback();
     };
 
     SingleAlone.prototype.encode = function() {
@@ -263,7 +322,7 @@ var SingleAlone = (function(_super) {
     SingleAlone.response['/user/auth'] = {};
     SingleAlone.response['/user/sync'] = {};
     SingleAlone.response['/user/enter'] = {};
-
+    //SingleAlone.response['/fruit/enter'] = {};
     SingleAlone.response['/fruit/betOn'] = function(params) {
         var data = {};
         var game = App.game = new Fruit.Game();
