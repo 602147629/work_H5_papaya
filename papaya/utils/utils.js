@@ -37,5 +37,15 @@
         }
 
         return result;
-    }
+    };
+
+    //返回 min~max之间的一个数 不包含max 如果需要包含最大值 可在调用的时候max为你需要的最大值+1
+    Utils.range_value = function(min, max) {
+        return Math.floor(Math.random()*(max-min) + min);
+    };
+
+    //返回 0~max之间的一个数 不包含max
+    Utils.random_number = function(max) {
+        return Utils.range_value(0, max);
+    };
 }(Papaya));

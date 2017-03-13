@@ -23,10 +23,12 @@
  *       "LUCKY 5"                   // HIGH 5
  */
 (function(root) {
-    var Poker = root.Poker = function() {
-        this.type = null;
-        this.name = null;
-        this.value = 0;
+    var Poker = root.Poker = function(opts) {
+        opts = opts || {};
+
+        this.type  = opts.type || null;
+        this.name  = opts.name || null;
+        this.value = opts.value || 0;
     };
 
     Poker.NOTHING                       = 0; // 散牌

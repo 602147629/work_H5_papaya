@@ -1,15 +1,30 @@
+/*
+ * Base Dependencies
+ */
 var fs = require('fs');
 var path = require('path');
+var UUID = require('uuid');
 var async = require('async');
 var moment = require('moment');
-var debug = require('debug')('service:account:app');
+var debug = require('debug')('papaya:app');
 var express = require('express');
 var favicon = require('serve-favicon');
 var log4js = require('log4js');
 var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
 var xmlParser = require('express-xml-bodyparser');
-var Code = require('./consts/code');
+
+/*
+ * Server Dependencies
+ */
+var ensureLoggedIn = require('./middleware/JWTAuthenticate');
+
+/*
+ * Papaya Dependencies
+ */
+var Papaya = require('../papaya');
+var Code = Papaya.Code;
+var Message = Papaya.Message;
 
 // 设置统一返回样式
 express.response.JSONP = function(code, error, data) {
@@ -22,7 +37,7 @@ express.response.JSONP = function(code, error, data) {
     result.code = code;
     if (error != null) {
         result.err = error;
-        result.msg = "";
+        result.msg = Message[error] || "Unknown error encountered";
     }
 
     if (data != null) {
@@ -42,7 +57,7 @@ var dirname = path.resolve(__dirname, '');
 // 设置跨域访问
 app.all('*', function(req, res, next) {
     res.header("Access-Control-Allow-Origin", "*");
-    res.header("Access-Control-Allow-Headers", "X-Requested-With");
+    res.header("Access-Control-Allow-Headers", "X-Requested-With,Authorization");
     res.header("Access-Control-Allow-Methods","PUT,POST,GET,DELETE,OPTIONS");
     res.header("Content-Type", "application/json;charset=utf-8");
     next();
@@ -60,9 +75,12 @@ app.use(bodyParser.raw());
 app.use(bodyParser.text());
 app.use(xmlParser({ explicitArray: false, normalize: false, normalizeTags: false, trim: true }));
 app.use(cookieParser());
+app.use(express.static(path.join(dirname, 'public'), { index: false }));
 
-// 不提供静态页面服务
-//app.use(express.static(path.join(dirname, 'public', 'account')));
+// 认证中间件
+app.use(ensureLoggedIn.unless({
+    path: [ '/user/auth', /\/portal\/*/ ]
+}));
 
 // 加载所有路由
 fs.readdirSync(dirname + '/routes').forEach(function(filename) {
@@ -97,6 +115,7 @@ app.use(function(err, req, res, next) {
 
     var path = (typeof req.originalUrl === "string") ? req.originalUrl.split('?')[0] : "";
     debug('Exception %s req=%j body=%j res=%j', path, req.query, req.body, error);
+    console.log(error.stack);
 
     res.jsonp(error);
 });

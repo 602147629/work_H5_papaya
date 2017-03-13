@@ -10,12 +10,12 @@ ParamFilter.verifyDeviceID = function(req, res, next) {
     var reg = /[0-9a-z]{8}-[0-9a-z]{4}-[0-9a-z]{4}-[0-9a-z]{4}-[0-9a-z]{12}/;
 
     if (udid == null) {
-        res.JSONP(Code.Failed, Code.REQUEST.INVALID_PARAMS);
+        res.JSONP(Code.Failed, Code.REQUEST.INVALID_UUID);
         return;
     }
 
     if (udid.match(reg) == null) {
-        res.JSONP(Code.Failed, Code.REQUEST.INVALID_PARAMS);
+        res.JSONP(Code.Failed, Code.REQUEST.INVALID_UUID);
         return;
     }
 
@@ -32,7 +32,7 @@ ParamFilter.verifyUserSignature = function(req, res, next) {
 
     var game = cacheManager.getGame(appID);
     if (game == null) {
-        res.JSONP(Code.Failed, Code.REQUEST.INVALID_APP);
+        res.JSONP(Code.Failed, Code.REQUEST.INVALID_PARAMS);
         return;
     }
 

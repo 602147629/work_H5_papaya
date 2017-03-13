@@ -21,6 +21,9 @@
     });
 
     Game.ID_BASE           = 0;
-    Game.ID_LUCKY5         = 1;
-    Game.ID_FRUIT          = 2;
+    Game.ID_LUCKY5         = 100001;
+    Game.ID_FRUIT          = 100002;
+    Game.ID_POKERGO        = 100003;
+    Game.ID_POKERGOGO      = 100004;
+    Game.ID_SHARK          = 100005;
 }(Papaya));

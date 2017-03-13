@@ -7,6 +7,9 @@
         this.id             = opts.id || 0;
         this.name           = opts.name || "Guest";
         this.balance        = opts.balance || 10000;
+        this.language       = opts.language || "zh-CN";
+
+        console.log(this);
     };
 
     root.inherits(Player, _super);
@@ -22,6 +25,14 @@
                     obj[key] = opts[key];
                 }
             }
+        },
+
+        setBalance: function(amount) {
+            this.balance = amount;
+        },
+
+        getBalance: function() {
+            return this.balance;
         }
     });
 } (Papaya));

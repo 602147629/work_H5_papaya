@@ -6,7 +6,7 @@
 var fs = require('fs');
 var path = require('path');
 var async = require('async');
-var debug = require('debug')('service:account:server');
+var debug = require('debug')('papaya:server');
 
 /**
  * Init Logger for Application

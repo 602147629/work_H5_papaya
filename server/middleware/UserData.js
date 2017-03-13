@@ -1,7 +1,7 @@
 
 var CryptoJS = require('crypto-js');
 var Code = require('../consts/code');
-var AccountDB = require('../models/account/index');
+var PapayaDB = require('../models/papaya/index');
 var cacheManager = require('../service/CacheManager');
 var debug = require('debug')('service:service:cache');
 
@@ -20,7 +20,7 @@ UserData.queryInfo = function(req, res, next) {
         where.udid = udid;
     }
 
-    var User = AccountDB.models.user;
+    var User = PapayaDB.models.user;
     User.findOne({
         where: where
     }).then(function(user) {

@@ -7,8 +7,8 @@
     /**
      * Game Constants
      */
-    Papaya.PokerGo.MAX_HAND              = 5;
+    Papaya.PokerGo.MAX_HAND              = 2;
     Papaya.PokerGo.MIN_BET               = 10;
     Papaya.PokerGo.MAX_BET               = 1000;
-
+    Papaya.PokerGo.MIN_BET_INDEX         = 0;
 }(Papaya));

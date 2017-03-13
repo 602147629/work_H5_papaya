@@ -6,29 +6,14 @@
 var program = require('commander');
 var async = require('async');
 var app = require('../app');
-var MasterDB = require('../models/master');
-var AccountDB = require('../models/account');
-var PaymentDB = require('../models/payment');
-var Game003DB = require('../models/hgame003');
+var PapayaDB = require('../models/papaya');
 
 /**
  * Commander implements.
  */
 function parseDB(val) {
-    if (val == "master") {
-        return MasterDB;
-    }
-
-    if (val == "account") {
-        return AccountDB;
-    }
-
-    if (val == "payment") {
-        return PaymentDB;
-    }
-
-    if (val == "hgame003") {
-        return Game003DB;
+    if (val == "papaya") {
+        return PapayaDB;
     }
 }
 

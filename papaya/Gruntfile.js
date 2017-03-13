@@ -23,7 +23,7 @@ module.exports = function(grunt) {
             "consts/code.js"
         ],
         utilFiles: [
-
+            "utils/utils.js"
         ],
 
         copy: {
@@ -36,13 +36,16 @@ module.exports = function(grunt) {
             project: {
                 src: [
                     '<%= baseFiles %>',
+                    '<%= constFiles %>',
+                    '<%= utilFiles%>',
                     '<%= projectFiles %>'
                 ],
-                dest: '../<%= projectName%>/src/game/<%= pkg.name %>.js'
+                dest: '../client/<%= projectName%>/src/game/<%= pkg.name %>.js'
             },
             build: {
                 src: [
                     '<%= baseFiles %>',
+                    '<%= utilFiles%>',
                     '<%= projectFiles>'
                 ],
                 dest: 'dist/<%= pkg.name %>.js'

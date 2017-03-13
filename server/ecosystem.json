@@ -5,19 +5,19 @@
             "script"           : "server.js",
             "env_production" : {
                 "NODE_ENV": "production",
-                "DEBUG": "service:*",
+                "DEBUG": "papaya:*",
                 "DEBUG_COLORS": true,
                 "REGION": "production"
             },
             "env_development" : {
                 "NODE_ENV": "development",
-                "DEBUG": "service:*",
+                "DEBUG": "papaya:*",
                 "DEBUG_COLORS": true,
                 "REGION": "sandbox"
             },
             "env_debug" : {
                 "NODE_ENV": "debug",
-                "DEBUG": "service:*",
+                "DEBUG": "papaya:*",
                 "DEBUG_COLORS": true,
                 "REGION": "debug"
             }
@@ -31,11 +31,9 @@
             "ref"  : "origin/master",
             "repo" : "git@git.whalejoy.com:/data/repos/papaya.git",
             "path" : "/home/whalejoy/production/papaya",
-            "post-deploy" : "npm install && pm2 startOrRestart ecosystem.account.json --env production",
+            "post-deploy" : "cd papaya && npm install && cd ../server && npm install && pm2 startOrRestart ecosystem.json --env production",
             "env": {
-                "NODE_ENV": "production",
-                "DEBUG": "service:*",
-                "REGION": "production"
+                "NODE_ENV": "production"
             }
         },
         "development" : {
@@ -44,11 +42,9 @@
             "ref"  : "origin/master",
             "repo" : "git@git.whalejoy.com:/data/repos/papaya.git",
             "path" : "/home/whalejoy/development/papaya",
-            "post-deploy" : "npm install && pm2 startOrRestart ecosystem.account.json --env development",
+            "post-deploy" : "cd papaya && npm install && cd ../server && npm install && pm2 startOrRestart ecosystem.json --env development",
             "env"  : {
-                "NODE_ENV": "development",
-                "DEBUG": "service:*",
-                "REGION": "sandbox"
+                "NODE_ENV": "development"
             }
         },
         "debug" : {
@@ -57,11 +53,9 @@
             "ref"  : "origin/master",
             "repo" : "git@git.whalejoy.com:/data/repos/papaya.git",
             "path" : "/home/yomato/development/papaya",
-            "post-deploy" : "npm install && pm2 startOrRestart ecosystem.account.json --env debug",
+            "post-deploy" : "cd papaya && npm install && cd ../server && npm install && pm2 startOrRestart ecosystem.json --env debug",
             "env"  : {
-                "NODE_ENV": "debug",
-                "DEBUG": "service:*",
-                "REGION": "debug"
+                "NODE_ENV": "debug"
             }
         }
     }

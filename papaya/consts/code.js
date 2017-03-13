@@ -1,40 +1,45 @@
 (function(root) {
-    root.Code = {
-        OK: 200,
-        FAILED: 500,
-        TIMEOUT: 1000,
+    var Code = root.Code = {
+        OK:                     200,
+        Failed:                 500,
+        TIMEOUT:                1000,
 
-        MySQL: {
-            DB_ERROR: 1001,
-            RECORD_ERROR: 1002,
-            PROCEDURE_ERROR: 1003
-        },
-
-        REDIS: {
-            REDIS_ERROR: 1101
-        },
-
-        HTTP: {
-            REQUEST_ERROR: 1201,
-            STATUS_ERROR: 1202,
-            BODY_ERROR: 1203
-        },
-        
-        AUTH: {
-
+        INTERNAL: {
+            MySQL_ERROR:         1001,
+            REDIS_ERROR:         1002,
+            HTTP_ERROR:          1003,
+            TOKEN_ERROR:         1004
         },
 
         REQUEST: {
-            INVALID_PARAMS: 1500,
-            INVALID_SIGNATURE: 1501,
-            UNZIP_ERROR: 1502,
-            JSON_ERROR: 1503,
-            TOKEN_ERROR: 1504,
-            SDK_ERROR: 1505,
-            DATA_ERROR: 1506,
-            INVALID_PLATFORM: 1507,
-            INVALID_SERVER: 1508,
-            INTERNAL_ERROR: 1509
+            INVALID_PARAMS:      1500,
+            INVALID_UUID:        1501,
+            INVALID_SIGNATURE:   1502,
+            INVALID_TOKEN:       1503,
+            INVALID_STATE:       1504
+        },
+
+        RESPONSE: {
+            BALANCE_INSUFFICIENT: 1600,
         }
     };
+
+    root.Message = {};
+    root.Message[Code.OK]        = "OK";
+    root.Message[Code.Failed]    = "Failure";
+    root.Message[Code.TIMEOUT]   = "Timeout";
+
+    root.Message[Code.INTERNAL.MySQL_ERROR]                  = "MySQL error";
+    root.Message[Code.INTERNAL.REDIS_ERROR]                  = "redis error";
+    root.Message[Code.INTERNAL.HTTP_ERROR]                   = "http request error";
+    root.Message[Code.INTERNAL.TOKEN_ERROR]                  = "jwt token error";
+
+    root.Message[Code.REQUEST.INVALID_PARAMS]                = "Invalid request params";
+    root.Message[Code.REQUEST.INVALID_UUID]                  = "Invalid uuid format";
+    root.Message[Code.REQUEST.INVALID_SIGNATURE]             = "Invalid signature";
+    root.Message[Code.REQUEST.INVALID_TOKEN]                 = "Invalid jwt";
+    root.Message[Code.REQUEST.INVALID_STATE]                 = "Invalid state";
+
+    root.Message[Code.RESPONSE.BALANCE_INSUFFICIENT]         = "Balance insufficient";
+
 }(Papaya));

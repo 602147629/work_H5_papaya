@@ -1,168 +1,342 @@
+/*
+ * Base Dependencies
+ */
 var express = require('express');
 var router = express.Router();
-var UUID = require('uuid');
-var app = require('../app');
-var debug = require('debug')('service:account:user');
-var Code = require('../consts/code');
-var DataUtils = require('../utils/DataUtils');
-var paramFilter = require('../middleware/ParamFilter');
-var userData = require('../middleware/UserData');
+var async = require('async');
+
+/*
+ * Server Dependencies
+ */
+var debug = require('debug')('papaya:route:lucky5');
+var PapayaDB = require('../models/papaya');
 var cacheManager = require('../service/CacheManager');
-var Game = require('../../papaya/index');
-var Lucky5 = Game.Lucky5;
+
+/*
+ * Papaya Dependencies
+ */
+var Papaya = require('../../papaya/');
+var Code = Papaya.Code;
+var Lucky5 = Papaya.Lucky5;
+var gameID = Papaya.Game.ID_LUCKY5;
 
 module.exports = {
     path: "/lucky5",
     route: router
 };
 
-router.use(paramFilter.verifyDeviceID);
-router.use(userData.queryInfo);
+router.use(function(req, res, next) {
+    var userID = req.user.id;
+    var Profile = PapayaDB.models.profile;
 
-router.get('/deal', function(req, res, next) {
-    var bet = req.query.bet || 10;
-    var player = cacheManager.getPlayer(req.userInfo.id);
-    if (player == null) {
-        res.JSONP(Code.Failed, Code.USER.RECORD_NULL);
-        return;
-    }
+    Profile.findOne({
+        where: { userID: userID, gameID: gameID }
+    }).then(function(record) {
+        if (record == null) {
+            var game = new Lucky5.Game();
 
-    var game = cacheManager.getGame(req.userInfo.id, Game.Game.ID_LUCKY5);
-    if (game == null) {
-        game = new Lucky5.Game();
-        cacheManager.setGame(req.userInfo.id, game);
-    }
+            return Profile.create({
+                userID: userID,
+                gameID: gameID,
+                data: game.toString()
+            });
+        }
 
+        return record;
+    }).then(function(record) {
+
+        req.profile = record;
+        req.game    = new Lucky5.Game(record.data);
+
+        next();
+    }).catch(function(e) {
+        debug(e);
+        res.JSONP(Code.Failed, Code.INTERNAL.MySQL_ERROR);
+    });
+});
+
+router.get('/enter', function(req, res) {
     var data = {};
+    var game = req.game;
 
-    game.bet(bet);
-    game.deal();
-
-    data.pokers = game.handPokers;
-    data.player = {
-        balance: player.balance - bet
-    };
-
-    //更新服务器的player信息
-    DataUtils.updatePlayer(req.userInfo.id, data.player);
+    switch (game.state) {
+        case Lucky5.Game.STATE.READY:
+        case Lucky5.Game.STATE.STARTED:
+        case Lucky5.Game.STATE.SHUFFLED:
+            break;
+        case Lucky5.Game.STATE.DEALED:
+            break;
+        case Lucky5.Game.STATE.DRAWED:
+            break;
+        case Lucky5.Game.STATE.ENDED:
+            break;
+        case Lucky5.Game.STATE.DOUBLE:
+            break;
+    }
 
     res.JSONP(Code.OK, null, data);
 });
 
-router.get('/draw', function(req, res, next) {
+router.get('/deal', function(req, res, next) {
+    var bet = req.query.bet;
+
     var data = {};
-    var player = cacheManager.getPlayer(req.userInfo.id);
-    if (player == null) {
-        res.JSONP(Code.Failed, Code.USER.RECORD_NULL);
-        return;
-    }
+    var game = req.game;
+    var profile = req.profile;
+    var agent = cacheManager.getAgent(req.user.agent);
 
-    var game = cacheManager.getGame(req.userInfo.id, Game.Game.ID_LUCKY5);
-    if (game == null) {
-        res.JSONP(Code.Failed, Code.USER.RECORD_NULL);
-        return;
-    }
+    async.series([
+        // 发牌处理
+        function(callback) {
+            game.start();
+            game.shuffle();
+            game.bet(bet);
+            game.deal();
 
-    var hold = req.query.hold;
+            data.pokers = game.handPokers;
 
-    game.hold(hold);
-    game.draw();
-    game.end();
+            callback(null);
+        },
 
-    data.pokers     = game.handPokers;
-    data.holds      = game.holdPokers;
-    data.marks      = game.markPokers;
-    data.result     = game.result;
-    data.score      = game.score;
-    data.player     = {
-        balance: player.balance + game.score
-    };
+        // 调用上分接口
+        function(callback) {
+            agent.withdraw(req.token, game.betAmount, function(err, balance) {
+                if (err != null) {
+                    callback(err);
+                    return;
+                }
 
-    //更新服务器的player信息
-    DataUtils.updatePlayer(req.userInfo.id, data.player);
+                data.balance = balance;
+                callback(null);
+            });
+        },
 
-    res.JSONP(Code.OK, null, data);
+        // 数据存盘
+        function(callback) {
+            profile.data = game.toString();
+            profile.save().then(function() {
+                callback(null);
+            }).catch(function(e) {
+                debug(e);
+                callback(Code.INTERNAL.MySQL_ERROR);
+            })
+        }
+    ], function(err) {
+        if (err != null) {
+            res.JSONP(Code.Failed, err);
+            return;
+        }
+
+        res.JSONP(Code.OK, null, data);
+    });
+});
+
+router.get('/draw', function(req, res) {
+    var hold = JSON.parse(req.query.hold);
+
+    var data = {};
+    var game = req.game;
+    var profile = req.profile;
+    var agent = cacheManager.getAgent(req.user.agent);
+
+    async.series([
+        function(callback) {
+            game.hold(hold);
+            game.draw();
+            game.end();
+
+            data.pokers     = game.handPokers;
+            data.holds      = game.holdPokers;
+            data.marks      = game.markPokers;
+            data.result     = game.result;
+            data.score      = game.score;
+
+            callback(null);
+        },
+
+        // 调用下分接口
+        function(callback) {
+            if (game.score > 0) {
+                agent.deposit(req.token, data.score, function(err, balance) {
+                    if (err != null) {
+                        callback(err);
+                        return;
+                    }
+
+                    data.balance = balance;
+                    callback(null);
+                });
+            } else {
+                callback(null);
+            }
+        },
+
+        //游戏存盘
+        function(callback) {
+            profile.data = game.toString();
+            profile.save().then(function() {
+                callback(null);
+            }).catch(function(e) {
+                debug(e);
+                callback(Code.INTERNAL.MySQL_ERROR);
+            })
+        }
+
+    ], function(err) {
+        if (err != null) {
+            res.JSONP(Code.Failed, err);
+            return;
+        }
+
+        res.JSONP(Code.OK, null, data);
+    });
 });
 
 router.get('/double', function(req, res, next) {
     var data = {};
-    var player = cacheManager.getPlayer(req.userInfo.id);
-    if (player == null) {
-        res.JSONP(Code.Failed, Code.USER.RECORD_NULL);
-        return;
-    }
+    var game = req.game;
+    var double = game.double;
+    var profile = req.profile;
 
-    var game = cacheManager.getGame(req.userInfo.id, Game.Game.ID_LUCKY5);
-    if (game == null) {
-        res.JSONP(Code.Failed, Code.USER.RECORD_NULL);
-        return;
-    }
+    async.series([
+        function(callback) {
+            game.enterDouble();
 
-    var double = game.createDouble();
+            data.lastScore = double.lastScore;
 
-    data.lastScore = double.lastScore;
+            callback(null);
+        },
 
-    res.JSONP(Code.OK, null, data);
+        //游戏存盘
+        function(callback) {
+            profile.data = game.toString();
+            profile.save().then(function() {
+                callback(null);
+            }).catch(function(e) {
+                debug(e);
+                callback(Code.INTERNAL.MySQL_ERROR);
+            })
+        }
+    ], function(err) {
+        if (err != null) {
+            res.JSONP(Code.Failed, err);
+            return;
+        }
+
+        res.JSONP(Code.OK, null, data);
+    });
 });
 
 router.get('/double/deal', function(req, res, next) {
     var data = {};
-    var player = cacheManager.getPlayer(req.userInfo.id);
-    if (player == null) {
-        res.JSONP(Code.Failed, Code.USER.RECORD_NULL);
-        return;
-    }
+    var game = req.game;
+    var double = game.double;
+    var profile = req.profile;
+    var agent = cacheManager.getAgent(req.user.agent);
 
-    var game = cacheManager.getGame(req.userInfo.id, Game.Game.ID_LUCKY5);
-    if (game == null) {
-        res.JSONP(Code.Failed, Code.USER.RECORD_NULL);
-        return;
-    }
+    var type = req.query.type;
 
-    var double = game.double();
+    async.series([
+        // 游戏处理
+        function(callback) {
+            double.start();
+            double.shuffle();
+            double.bet(type);
+            double.deal();
 
-    double.init();
-    double.bet(req.query.type);
-    double.deal();
+            data.pokers = double.handPokers;
 
-    data.pokers = double.handPokers;
-    data.player = {
-        balance: player.balance - double.betAmount
-    };
+            callback(null);
+        },
 
-    //更新服务器的player信息
-    DataUtils.updatePlayer(req.userInfo.id, data.player);
+        // 调用上分接口
+        function(callback) {
+            agent.withdraw(req.token, double.betAmount, function(err, balance) {
+                if (err != null) {
+                    callback(err);
+                    return;
+                }
 
-    res.JSONP(Code.OK, null, data);
+                data.balance = balance;
+                callback(null);
+            });
+        },
+
+        //游戏存盘
+        function(callback) {
+            profile.data = game.toString();
+            profile.save().then(function() {
+                callback(null);
+            }).catch(function(e) {
+                debug(e);
+                callback(Code.INTERNAL.MySQL_ERROR);
+            })
+        }
+    ], function(err) {
+        if (err != null) {
+            res.JSONP(Code.Failed, err);
+            return;
+        }
+
+        res.JSONP(Code.OK, null, data);
+    });
 });
 
 router.get('/double/draw', function(req, res, next) {
     var data = {};
-    var player = cacheManager.getPlayer(req.userInfo.id);
-    if (player == null) {
-        res.JSONP(Code.Failed, Code.USER.RECORD_NULL);
-        return;
-    }
+    var game = req.game;
+    var double = game.double;
+    var profile = req.profile;
+    var agent = cacheManager.getAgent(req.user.agent);
 
-    var game = cacheManager.getGame(req.userInfo.id, Game.Game.ID_LUCKY5);
-    if (game == null) {
-        res.JSONP(Code.Failed, Code.USER.RECORD_NULL);
-        return;
-    }
+    var selected = req.query.selected;
 
-    var double = game.double();
+    async.series([
+        // 游戏处理
+        function(callback) {
+            double.draw(selected);
+            double.end();
 
-    double.draw(req.query.selected);
-    double.end();
+            data.result = double.result;
+            data.score  = double.score;
 
-    data.result = double.result;
-    data.score  = double.score;
-    data.player = {
-        balance: player.balance + double.score
-    };
+            callback(null);
+        },
 
-    //更新服务器的player信息
-    DataUtils.updatePlayer(req.userInfo.id, data.player);
+        // 调用下分接口
+        function(callback) {
+            if (data.score > 0) {
+                agent.deposit(req.token, data.score, function(err, balance) {
+                    if (err != null) {
+                        callback(err);
+                        return;
+                    }
 
-    res.JSONP(Code.OK, null, data);
+                    data.balance = balance;
+                    callback(null);
+                });
+            } else {
+                callback(null);
+            }
+        },
+
+        //游戏存盘
+        function(callback) {
+            profile.data = game.toString();
+            profile.save().then(function() {
+                callback(null);
+            }).catch(function(e) {
+                debug(e);
+                callback(Code.INTERNAL.MySQL_ERROR);
+            })
+        }
+    ], function(err) {
+        if (err != null) {
+            res.JSONP(Code.Failed, err);
+            return;
+        }
+
+        res.JSONP(Code.OK, null, data);
+    });
 });
+

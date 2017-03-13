@@ -3,8 +3,10 @@ var fs = require('fs');
 var path = require('path');
 var async = require('async');
 
-var debug = require('debug')('service:service:cache');
+var debug = require('debug')('papaya:service:cache');
+var PapayaDB = require('../models/papaya');
 
+var defaultAgent = "gg";
 var CacheManager = module.exports = {};
 
 CacheManager.name = "CacheManager";
@@ -12,10 +14,13 @@ CacheManager.name = "CacheManager";
 CacheManager.init = function(cb) {
     var self = this;
 
-    this.games = {};
-    this.players = {};
+    this.agents = {};
+    this.agentClass = {};
 
     async.series([
+        function(callback) {
+            self.load(callback)
+        }
     ], function(err, results) {
         if (err != null) {
             debug("cacheManager init error: ", err);
@@ -25,42 +30,6 @@ CacheManager.init = function(cb) {
         debug("%s inited...", self.name);
         process.nextTick(cb);
     });
-};
-
-CacheManager.getGame = function(userId, gameId) {
-    if (this.games[userId] == null || this.games[userId][gameId] == null) {
-        return null;
-    }
-
-    return this.games[userId][gameId];
-};
-
-CacheManager.setGame = function(userId, game) {
-    if (this.games[userId] == null) {
-        this.games[userId] = {};
-    }
-
-    this.games[userId][game.id] = game;
-};
-
-CacheManager.delGame = function(userId, gameId) {
-    if (this.games[userId] == null) {
-        return;
-    }
-
-    delete this.games[userId][gameId];
-};
-
-CacheManager.getPlayer = function(userId) {
-    return this.players[userId];
-};
-
-CacheManager.setPlayer = function(player) {
-    this.players[player.id] = player;
-};
-
-CacheManager.delPlayer = function(userId) {
-    delete this.players[userId];
 };
 
 CacheManager.start = function(cb) {
@@ -73,6 +42,34 @@ CacheManager.stop = function(cb) {
     process.nextTick(cb);
 };
 
-CacheManager.load = function() {
+CacheManager.load = function(callback) {
+    var self = this;
+    var Agent = PapayaDB.models.agent;
 
+    Agent.findAll().then(function(records) {
+        records.forEach(function(record) {
+            var filename = path.resolve(__dirname, "../agents", record.ctor);
+
+            self.agents[record.id] = record;
+            self.agentClass[record.name] = require(filename);
+
+            debug("agent:%s:%d loaded", record.name, record.id);
+        });
+
+        callback(null);
+    }).catch(function(e) {
+        debug(e);
+        callback(e);
+    })
+};
+
+CacheManager.getAgent = function(ag) {
+    var name = ag || defaultAgent;
+    var names = Object.keys(this.agentClass);
+    if (names.indexOf(name) == -1) {
+        name = defaultAgent;
+    }
+
+    var Constructor = this.agentClass[name];
+    return new Constructor();
 };

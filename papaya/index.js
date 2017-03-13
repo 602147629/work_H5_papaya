@@ -14,6 +14,23 @@ files.forEach(function(file) {
     require(path.resolve(__dirname, file));
 });
 
+var products = [
+    'Fruit',
+    'lucky5',
+    'pokerGo',
+    //'pokerGoGo',
+    'Shark'
+];
+
+for (var i in products) {
+    var projectName = products[i];
+    var product_file = require(__dirname + '/' + projectName + '/' + projectName + '.files.json');
+
+    product_file.forEach(function(file) {
+        require(path.resolve(__dirname, file));
+    });
+}
+
 /*
  * Export our namespace to users
  */

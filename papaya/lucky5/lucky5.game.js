@@ -14,27 +14,20 @@
         //public members
         this.id                     = root.Game.ID_LUCKY5;
 
-        this.double                 = null;
+        this.double                 = new Lucky5.Double(opts.double);
 
         this.deck                   = []; // 一整副牌
         this.handPokers             = []; // 手牌
         this.dropPokers             = []; // 翻牌
-        this.holdPokers             = [ false, false, false, false, false ];
-        this.markPokers             = [ false, false, false, false, false ];
-        this.state                  = Game.STATE.READY;
-        this.result                 = Poker.NOTHING;
-        this.betAmount              = 0;
-        this.score                  = 0;
-        this.bonus                  = 0;
-
-        // this.score                  = 10000;
-        // this.increaseScore          = 0;
-        // this.stake                  = 10;
-        // this.gamblingSizeStake      = 0;
-        // this.gamblingSizeTimes      = 0;
-        // this.jackPotPool            = 1000;
+        this.holdPokers             = opts.holdPokers || [ false, false, false, false, false ];
+        this.markPokers             = opts.markPokers ||  [ false, false, false, false, false ];
+        this.state                  = opts.state || Game.STATE.READY;
+        this.result                 = opts.result || Poker.NOTHING;
+        this.betAmount              = opts.betAmount || 0;
+        this.score                  = opts.score || 0;
+        this.bonus                  = opts.bounus || 0;
         
-        this.init();
+        this.init(opts);
     };
 
     //Inherits Class
@@ -42,7 +35,42 @@
 
     //Extend Prototype
     root.extend(Game.prototype, {
-        init: function() {
+        init: function(opts) {
+            var i;
+            var size;
+
+            if (opts.deck) {
+                for (i = 0, size = opts.deck.length; i < size; i++) {
+                    this.deck.push(new Lucky5.Poker(opts.deck[i]));
+                }
+            }
+
+            if (opts.handPokers) {
+                for (i = 0, size = opts.handPokers.length; i < size; i++) {
+                    this.handPokers.push(new Lucky5.Poker(opts.handPokers[i]));
+                }
+            }
+
+            if (opts.dropPokers) {
+                for (i = 0, size = opts.dropPokers.length; i < size; i++) {
+                    this.dropPokers.push(new Lucky5.Poker(opts.dropPokers[i]));
+                }
+            }
+        },
+        
+        start: function() {
+            // 初始化所有状态
+            this.deck                   = [];
+            this.handPokers             = [];
+            this.dropPokers             = [];
+            this.holdPokers             = [ false, false, false, false, false ];
+            this.markPokers             = [ false, false, false, false, false ];
+            this.state                  = Game.STATE.STARTED;
+            this.result                 = Poker.NOTHING;
+            this.betAmount              = 0;
+            this.score                  = 0;
+            this.bonus                  = 0;
+
             // 初始化扑克牌
             var types = Object.keys(Lucky5.Poker.DECK);
             for (var tIndex = 0, size = types.length; tIndex < size; tIndex++) {
@@ -60,9 +88,6 @@
                     this.deck.push(poker);
                 }
             }
-
-            // 洗牌
-            this.shuffle();
         },
 
         shuffle: function() {
@@ -78,6 +103,7 @@
             }
 
             this.deck = newDeck;
+            this.state = Game.STATE.SHUFFLED;
         },
 
         bet: function(amount) {
@@ -88,6 +114,8 @@
             for (var i = 0; i < Lucky5.MAX_HAND; i++) {
                 this.handPokers.push(this.deck.shift());
             }
+
+            this.state = Game.STATE.DEALED;
         },
 
         hold: function(arr) {
@@ -105,6 +133,8 @@
                 this.dropPokers.push(this.handPokers[i]);
                 this.handPokers[i] = this.deck.shift();
             }
+
+            this.state = Game.STATE.DRAWED;
         },
 
         end: function() {
@@ -114,16 +144,24 @@
             this.result = data.result;
             this.markPokers = data.marks;
             this.score  = score * this.betAmount;
+
+            this.state = Game.STATE.ENDED;
         },
 
-        createDouble: function() {
-            this.double = new Lucky5.Double({
-                lastScore: this.score
-            });
-            
-            return this.double;
+        enterDouble: function() {
+            this.double.lastScore = this.score;
+            this.state = Game.STATE.DOUBLE;
         }
     });
+
+    Game.STATE = {};
+    Game.STATE.READY            = 0;
+    Game.STATE.STARTED          = 1;
+    Game.STATE.SHUFFLED         = 2;
+    Game.STATE.DEALED           = 3;
+    Game.STATE.DRAWED           = 4;
+    Game.STATE.ENDED            = 5;
+    Game.STATE.DOUBLE           = 6;
 
     // Game.prototype.init = function() {
     //     for (var type in Poker.DECK) {
@@ -884,25 +922,7 @@
     //     return bonus;
     // };
     //
-    // Game.prototype.initHoldPokers = function() {
-    //     this.holdPokers = [false,false,false,false,false];
-    // };
 
-    //Game.Event = {};
-    //Game.Event.DEALED = "dealed";
-    //Game.Event.DRAWED = "drawed";
-    //Game.Event.GAMBLINGSIZEREADY = "gamblingsizesready";
-    //Game.Event.GAMBLINGSIZESTART = "gamblingsizestart";
-    //Game.Event.GAMBLINGSIZERUNNING = "gamblingsizerunning";
-    //Game.Event.GAMBLINGSIZEEND = "gamblingsizeend";
-    //
-    Game.STATE = {};
-    Game.STATE.READY            = 0;
-    Game.STATE.STARTED          = 1;
-    Game.STATE.SHUFFLED         = 2;
-    Game.STATE.DEALED           = 3;
-    Game.STATE.DRAWED           = 4;
-    Game.STATE.ENDED            = 9;
     //
     //Game.GAMBLINGSIZE = {};
     //Game.GAMBLINGSIZE.BIG = 0;

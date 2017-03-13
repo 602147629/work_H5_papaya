@@ -46,10 +46,9 @@
         this.luckRewardFruits = [];
         this.normalRewardFruits = [];
 
-        var fruits = {
-            rotaryFruits: null,
-            luckRewardFruits: null,
-            normalRewardFruits: null
+        var result = {
+            fruits: {},
+            rewardType: {}
         };
 
         var wasSaveLightNum = 0;
@@ -64,16 +63,24 @@
             var isEatLight = this.getLuckRewardFruits();
             if (isEatLight) {
                 this.rotaryFruits = [this.luckFruitIndex];
-                fruits.rotaryFruits = this.rotaryFruits;
-                return fruits;
+                this.luckRewardFruits = [];
+                this.normalRewardFruits = [];
             }
         }
 
-        fruits.rotaryFruits = this.rotaryFruits;
-        fruits.luckRewardFruits = this.luckRewardFruits;
-        fruits.normalRewardFruits = this.normalRewardFruits;
+        result.fruits = {
+            rotaryFruits: this.rotaryFruits,
+            luckRewardFruits: this.luckRewardFruits,
+            normalRewardFruits: this.normalRewardFruits
+        };
 
-        return fruits;
+        result.rewardType = {
+            hasBigTriple: this.hasBigTriple,
+            hasSmallTriple: this.hasSmallTriple,
+            hasQuadruple: this.hasQuadruple
+        };
+
+        return result;
     };
 
     Logic.getRandomFruitIndex = function () {
@@ -82,8 +89,9 @@
         var luckFruitIndexList = Rotary.LUCK_INDEX_LIST;
 
         fruitIndex = Utils.calcWeight(rotaryFruits);
-        if (luckFruitIndexList.indexOf(fruitIndex) != -1) {
-            if (!this.hasLuckFruit) {
+        var index = fruitIndex + 1001;
+        if (luckFruitIndexList.indexOf(index) != -1) {
+            if (this.hasLuckFruit) {
                 fruitIndex = this.getRandomFruitIndex();
             }
             else {
@@ -98,22 +106,31 @@
     Logic.getLuckRewardFruits = function () {
         var isEatLight = false;
 
-        //*吃灯5%，送灯75%，小三元10%，大三元10%
         var rand = Utils.random_number(100);
         var index = 0;
         var fruitIndex = 0;
 
-        if (rand < 5) {
-            result.isEatLight = true;
+        if (rand < Rotary.PROBABILITY_LUCKY_EAT_LIGHT) {
+            isEatLight = true;
         }
-        else if (rand >= 5 && rand < 80) {
+        else if (rand >= Rotary.PROBABILITY_LUCKY_EAT_LIGHT && rand < Rotary.PROBABILITY_LUCKY_GIVE_LIGHT) {
             var giveLightTotal = this.getGiveLightTotal();
             for (index; index < giveLightTotal; index ++) {
                 fruitIndex = this.getRandomFruitIndex();
                 this.luckRewardFruits.push(fruitIndex);
             }
         }
-        else if (rand >= 80 && rand < 90) {
+        else if (rand >= Rotary.PROBABILITY_LUCKY_GIVE_LIGHT && rand < Rotary.PROBABILITY_LUCKY_QUADRUPLE) {
+            var appleList = Rotary.QUADRUPLE;
+            var appleIndex = 0;
+            for (index = 0; index < appleList.length; index ++) {
+                appleIndex = appleList[index];
+                if (this.rotaryFruits.indexOf(appleIndex) == -1) {
+                    this.luckRewardFruits.push(appleIndex);
+                }
+            }
+        }
+        else if (rand >= Rotary.PROBABILITY_LUCKY_QUADRUPLE && rand < Rotary.PROBABILITY_LUCKY_SMALL_TRIPLE) {
             var smallTriple = Rotary.SMALL_TRIPLE;
             for (var name in smallTriple) {
                 var fruitList = smallTriple[name];
@@ -235,14 +252,14 @@
             high: 20
         };
 
-        var lowMultipleList = Rotary.RANDOM_MULTIPLE_LOW;
-        var highMultipleList = Rotary.RANDOM_MULTIPLE_HIGH;
+        var lowMultipleList = Rotary.WEIGHT_MULTIPLE_LOW;
+        var randLowIndex = Utils.calcWeight(lowMultipleList);
 
-        var randLowIndex = Utils.random_number(3);
-        var randHighIndex = Utils.random_number(3);
+        var highMultipleList = Rotary.WEIGHT_MULTIPLE_HIGH;
+        var randHighIndex = Utils.calcWeight(highMultipleList);
 
-        multiple.low = lowMultipleList[randLowIndex];
-        multiple.high = highMultipleList[randHighIndex];
+        multiple.low = lowMultipleList[randLowIndex].multiple;
+        multiple.high = highMultipleList[randHighIndex].multiple;
 
         return multiple;
     };

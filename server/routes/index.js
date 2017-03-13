@@ -1,8 +1,19 @@
+/*
+ * Base Dependencies
+ */
 var express = require('express');
 var router = express.Router();
-var debug = require('debug')('service:account:index');
-var Code = require('../consts/code');
-var app = require('../app');
+
+/*
+ * Server Dependencies
+ */
+var debug = require('debug')('papaya:route:index');
+
+/*
+ * Papaya Dependencies
+ */
+var Papaya = require('../../papaya/');
+var Code = Papaya.Code;
 
 module.exports = {
     path: "/",

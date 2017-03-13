@@ -1,0 +1,10 @@
+{
+    "renderMode": 0,
+    "showFPS": true,
+    "frameRate": 30,
+    "version": "0.0.1.1",
+    "singleAlone": true,
+    "service": "http://127.0.0.1:2700",
+    "appID": 100005,
+    "appKey": "abcdefg"
+}
