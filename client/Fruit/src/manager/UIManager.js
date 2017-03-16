@@ -75,6 +75,14 @@ var UIManager = (function(_super) {
     UIManager.prototype.getFruitCellGraySkin = function (type) {
         var skinPath = "";
         switch (type) {
+            case "golden": {
+                skinPath = UIManager.CELL_GRAY_IMG.GOLDEN;
+                break;
+            }
+            case "blue": {
+                skinPath = UIManager.CELL_GRAY_IMG.BLUE;
+                break;
+            }
             case "deep": {
                 skinPath = UIManager.CELL_GRAY_IMG.DEEP;
                 break;
@@ -181,6 +189,8 @@ var UIManager = (function(_super) {
     };
 
     UIManager.CELL_GRAY_IMG = {
+        "GOLDEN": "assets/ui.images/img_0004_mc.png",
+        "BLUE": "assets/ui.images/img_0005_mc.png",
         "DEEP": "assets/ui.images/img_0003_mc.png",
         "SHALLOW": "assets/ui.images/img_0002_mc.png"
     };

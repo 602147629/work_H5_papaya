@@ -142,22 +142,22 @@ var FruitMainView = (function(_super) {
             //*获取转盘上的格子
             singleCell = fruitRotaryUIBox.getChildByName("fruitBg_" + cellIndex);
             //*创建转盘的上的水果显示
-            if (cellIndex != FruitMainView.BLUE_LUCK_INDEX && cellIndex != FruitMainView.GOLDEN_LUCK_INDEX) {
-                var fruit = this.rotaryfruitList[cellIndex];
-                rotaryFruit = new FruitBox(fruit);
-                rotaryFruit.anchorX = 0.5;
-                rotaryFruit.anchorY = 0.5;
-                rotaryFruit.x = singleCell.x + 45;
-                rotaryFruit.y = singleCell.y + 44;
-                rotaryFruit.zOrder = 10;
-                this.fruitBgBox.addChild(rotaryFruit);
-            }
+            var fruit = this.rotaryfruitList[cellIndex];
+            rotaryFruit = new FruitBox(fruit);
+            rotaryFruit.anchorX = 0.5;
+            rotaryFruit.anchorY = 0.5;
+            rotaryFruit.x = singleCell.x + 45;
+            rotaryFruit.y = singleCell.y + 44;
+            rotaryFruit.zOrder = 10;
+            this.fruitBgBox.addChild(rotaryFruit);
 
             this.rotaryFruitBoxList.push(rotaryFruit);
             this.rotaryFruitCellList.push(singleCell);
         }
 
+        //*储存格子
         App.uiManager.setAllRotaryFruits(this.rotaryFruitCellList);
+        //*储存水果
         App.uiManager.setRotaryFruitBoxList(this.rotaryFruitBoxList);
     };
 
@@ -165,8 +165,13 @@ var FruitMainView = (function(_super) {
         var length = this.rotaryFruitCellList.length;
         var skin = "";
         for (var i = 0; i < length; i++) {
-            if (i != FruitMainView.GOLDEN_LUCK_INDEX &&
-                i != FruitMainView.BLUE_LUCK_INDEX) {
+            if (i == FruitMainView.GOLDEN_LUCK_INDEX) {
+                skin = App.uiManager.getFruitCellGraySkin("golden");
+            }
+            else if (i == FruitMainView.BLUE_LUCK_INDEX) {
+                skin = App.uiManager.getFruitCellGraySkin("blue");
+            }
+            else {
                 var num = i%2;
                 if (num <= 0) {
                     skin = App.uiManager.getFruitCellGraySkin("deep");
@@ -174,8 +179,8 @@ var FruitMainView = (function(_super) {
                 else {
                     skin = App.uiManager.getFruitCellGraySkin("shallow");
                 }
-                this.rotaryFruitCellList[i].skin = skin;
             }
+            this.rotaryFruitCellList[i].skin = skin;
         }
     };
 
@@ -230,6 +235,45 @@ var FruitMainView = (function(_super) {
         this.multipleBox.addChild(this.lowLight);
         this.highLight = new MultipleLightBox(this.highMultipleImgs);
         this.multipleBox.addChild(this.highLight);
+
+        this.blinkLightForGuess = [];
+        //*这里创建的是在博中大小之后所闪烁的倍率灯
+        for (var i = 0; i < 3; i++) {
+            var lowLight = new MultipleLightBox(this.lowMultipleImgs);
+            lowLight.setPositionByPosList(i);
+            this.lightBox.addChild(lowLight);
+            lowLight.doLightBlink();
+            this.blinkLightForGuess.push(lowLight);
+
+            var highLight = new MultipleLightBox(this.highMultipleImgs);
+            highLight.setPositionByPosList(i);
+            this.lightBox.addChild(highLight);
+            highLight.doLightBlink();
+            this.blinkLightForGuess.push(highLight);
+        }
+
+        this.setLightBoxVisibleAndBlink(false);
+    };
+
+    FruitMainView.prototype.setLightBoxVisibleAndBlink = function (visible, isBlink) {
+        if (typeof(visible) == "boolean") {
+            this.lightBox.visible = visible;
+
+            this.lowLight.visible = !visible;
+            this.highLight.visible = !visible;
+        }
+
+        if (typeof(isBlink) == "boolean") {
+            var index;
+            for (index in this.blinkLightForGuess) {
+                if (isBlink) {
+                    this.blinkLightForGuess[index].doLightBlink();
+                }
+                else {
+                    this.blinkLightForGuess[index].stopLightBlink();
+                }
+            }
+        }
     };
 
     FruitMainView.prototype.initRecordBoxList = function () {
@@ -262,14 +306,18 @@ var FruitMainView = (function(_super) {
         this.goBtnEffect.blendMode = "light";
         this.goBtn.addChild(this.goBtnEffect);
 
-        this.initEggEffectAndAction("blue");
-        this.initEggEffectAndAction("golden");
+        var eggs = ["blue", "golden"];
+        for (var i = 0; i < eggs.length; i++) {
+           var eggName = eggs[i];
+           this.initEggEffectAndAction(eggName);
+        }
 
         this.initArrowEffect();
 
         this.initFruitBtnEffect();
     };
 
+    //*luck的特效和动作
     FruitMainView.prototype.initEggEffectAndAction = function (type) {
         var index = 0;
         var animName = "";
@@ -294,6 +342,8 @@ var FruitMainView = (function(_super) {
         var rotaAction = App.animManager.get(animName);
         rotaAction.x = singleCell.x;
         rotaAction.y = singleCell.y;
+        rotaAction.scaleX = 0.99;
+        rotaAction.scaleY = 0.99;
         this.fruitBgBox.addChild(rotaAction);
         rotaAction.play();
 
@@ -301,19 +351,22 @@ var FruitMainView = (function(_super) {
         if (effect) {
             effect.x = singleCell.x + 40;
             effect.y = singleCell.y + 106;
+            effect.zOrder = 10;
             this.fruitBgBox.addChild(effect);
             effect.play();
         }
     };
 
+    //*猜大小箭头动画和特效
     FruitMainView.prototype.initArrowEffect = function () {
-        this.guessBtnGrayLayer.visible = false;
+        this.arrowEffects = [];
         var rightArrow = SpineEffect.create(10003);
         if (rightArrow) {
             rightArrow.x = 50;
             rightArrow.y = 75;
             this.betCutDoubleBtn.addChild(rightArrow);
             rightArrow.play();
+            this.arrowEffects.push(rightArrow);
         }
 
         var leftArrow = SpineEffect.create(10003);
@@ -323,49 +376,74 @@ var FruitMainView = (function(_super) {
             leftArrow.y = 75;
             this.betAddDoubleBtn.addChild(leftArrow);
             leftArrow.play();
+            this.arrowEffects.push(leftArrow);
         }
 
         var arrowList = [this.betCutDoubleBtn, this.betAddDoubleBtn];
         for (var i = 0; i < arrowList.length; i ++) {
+            //*发光，混合模式
             var lanse = new Laya.Image();
             lanse.skin = "assets/ui.images/lanse.png";
             lanse.blendMode = "light";
             arrowList[i].addChild(lanse);
 
-            var fadeTo = FadeTo.create(0.5, 0);
-            var fadeTo2 = FadeTo.create(0.6, 0.8);
-            var seq = Sequence.create(fadeTo, fadeTo2).repeatForever();
+            var lightMoveAction = App.animManager.get("ani.btn.lightMoveEffect");
+            lightMoveAction.x = 0;
+            lightMoveAction.y = 6;
+            lightMoveAction.interval = 100;
+            lightMoveAction.blendMode = "light";
+            arrowList[i].addChild(lightMoveAction);
+            lightMoveAction.play();
+
+            var fadeActionLight = FadeTo.create(0.4, 0.2);
+            var fadeActionLight2 = FadeTo.create(0.4, 0.8);
+            var seq1 = Sequence.create(fadeActionLight, DelayTime.create(0.6) ,fadeActionLight2).repeatForever();
+            App.actionManager.addAction(seq1, lightMoveAction);
+
+            var fadeAction = FadeTo.create(0.4, 0);
+            var fadeAction2 = FadeTo.create(0.4, 0.8);
+            var seq = Sequence.create(fadeAction, DelayTime.create(0.6) ,fadeAction2).repeatForever();
             App.actionManager.addAction(seq, lanse);
 
-            var rotaAction = App.animManager.get("ani.btn.lightMoveEffect");
-            rotaAction.x = 0;
-            rotaAction.y = 6;
-            rotaAction.blendMode = "light";
-            arrowList[i].addChild(rotaAction);
-            rotaAction.play();
+            this.arrowEffects.push(lanse);
+            this.arrowEffects.push(lightMoveAction);
         }
 
+        this.setArrowEffectVisible(false);
     };
 
+    FruitMainView.prototype.setArrowEffectVisible = function (visible) {
+        if (typeof(visible) != "boolean") {
+            visible = false;
+        }
+
+        for (var i = 0; i < this.arrowEffects.length; i++) {
+            this.arrowEffects[i].visible = visible;
+        }
+
+        this.leftArrow.visible = !visible;
+        this.rightArrow.visible = !visible;
+    };
+
+    //*押注水果按钮的特效
     FruitMainView.prototype.initFruitBtnEffect = function () {
         var btnName = "";
         var btn = null;
         var imgSkin = "assets/ui.images/luse.png";
-        //for (btnName in this.fruitBetBtnList) {
-        //    btn = this.fruitBetBtnList[btnName];
-        //    var btnEffect = new Laya.Image();
-        //    btnEffect.skin = imgSkin;
-        //    btnEffect.blendMode = "light";
-        //    btn.addChild(btnEffect);
-        //
-        //    var fadeAction = FadeTo.create(1, 0);
-        //    var fadeAction2 = FadeTo.create(1, 0.8);
-        //    var seq = Sequence.create(blinkAction, blinkAction2).repeatForever();
-        //    App.actionManager.addAction(seq, btnEffect);
-        //
-        //
-        //    this.fruitBetBtnEffects[btnName] = btnEffect;
-        //}
+        for (btnName in this.fruitBetBtnList) {
+            btn = this.fruitBetBtnList[btnName];
+            var btnEffect = new Laya.Image();
+            btnEffect.skin = imgSkin;
+            btnEffect.blendMode = "light";
+            btn.addChild(btnEffect);
+
+            var fadeAction = FadeTo.create(0.4, 0);
+            var fadeAction2 = FadeTo.create(0.4, 0.8);
+            var seq = Sequence.create(fadeAction, DelayTime.create(0.6) ,fadeAction2).repeatForever();
+            App.actionManager.addAction(seq, btnEffect);
+
+            this.fruitBetBtnEffects[btnName] = btnEffect;
+        }
     };
 
     FruitMainView.prototype.initTopInfoShow = function () {
@@ -474,17 +552,10 @@ var FruitMainView = (function(_super) {
 
     FruitMainView.prototype.onAllFruitAddBet = function () {
         if (this.gameState == FruitMainView.STATE_GAME_INIT || this.gameState == FruitMainView.STATE_FRUIT_BETTING) {
-            //var balance = this.balance;
-            //var totalFruit = this.fruitNameList.length;
-            //var allAddBetNum = this.betFactor * totalFruit;
-            //var fruitName = "";
-            //
-            //if (allAddBetNum <= balance) {
-                for (var fruitNameIndex in this.fruitNameList) {
-                    fruitName = this.fruitNameList[fruitNameIndex];
-                    this.onBetFruit(fruitName);
-                }
-            //}
+            for (var fruitNameIndex in this.fruitNameList) {
+                fruitName = this.fruitNameList[fruitNameIndex];
+                this.onBetFruit(fruitName);
+            }
         }
         else if (this.gameState == FruitMainView.STATE_GUESS_BETTING) {
             this.lightsUnBlinkOnView();
@@ -511,9 +582,6 @@ var FruitMainView = (function(_super) {
         this.fruitBettingList[fruitName] = betting * this.betFactor;
         this.setBettingLabelText(fruitName);
         this.setBetTotalLabText();
-        //var remainBalance = this.balance - betting;
-        //this.setCreditLabText(remainBalance);
-        //this.balance = remainBalance;
     };
 
     FruitMainView.prototype.showRandomNumInBetLab = function () {
@@ -531,6 +599,7 @@ var FruitMainView = (function(_super) {
         this.isRandomShowInBetLab = true;
     };
 
+    //*获取赌大小的结果
     FruitMainView.prototype.onGuessNumber = function (guessType) {
         this.lightsUnBlinkOnView();
 
@@ -549,6 +618,10 @@ var FruitMainView = (function(_super) {
 
         var type = null;
         var bet = this.bonusWin;
+
+        if (this.lightBox.visible) {
+            this.setLightBoxVisibleAndBlink(true,false);
+        }
 
         switch (guessType) {
             case FruitMainView.GUESS_TYPE.Low: {
@@ -584,6 +657,7 @@ var FruitMainView = (function(_super) {
         }
     };
 
+    //*赌大小数字跳转表现开始
     FruitMainView.prototype.onGuessRunning = function (result) {
         this.gameState = FruitMainView.STATE_GUESS_RUNNING;
 
@@ -591,17 +665,40 @@ var FruitMainView = (function(_super) {
 
         this.bonusWin = result.bonusWin;
         this.guessedNum = result.randNum;
-        this.guessRunningTime = 0;
+        this.guessRunningTime = 0;//*跳动的总时间
+        this.slowTime = 0;
 
         Laya.timer.frameLoop(1, this, this.guessNumberAction);
     };
 
+    //*赌大小数字跳转动作表现
     FruitMainView.prototype.guessNumberAction = function () {
         var rand = Math.floor(Math.random() * 12) + 1;
         var dt = Laya.timer.delta;
         this.guessRunningTime += dt;
 
-        if (this.guessRunningTime >= 1500) {
+        if (this.guessRunningTime >= 800 && this.guessRunningTime < 1000){
+            this.slowTime += dt;
+            if (this.slowTime >= 50) {
+                this.fruitBetLabelList[FruitMainView.GUESS_LABEL_INDEX].text = rand;
+                this.slowTime = 0;
+            }
+        }
+        else if (this.guessRunningTime >= 1000 && this.guessRunningTime < 1200) {
+            this.slowTime += dt;
+            if (this.slowTime >= 80) {
+                this.fruitBetLabelList[FruitMainView.GUESS_LABEL_INDEX].text = rand;
+                this.slowTime = 0;
+            }
+        }
+        else if (this.guessRunningTime >= 1200 && this.guessRunningTime < 1500) {
+            this.slowTime += dt;
+            if (this.slowTime >= 130) {
+                this.fruitBetLabelList[FruitMainView.GUESS_LABEL_INDEX].text = rand;
+                this.slowTime = 0;
+            }
+        }
+        else if (this.guessRunningTime >= 1500) {
             Laya.timer.clear(this, this.guessNumberAction);
             this.fruitBetLabelList[FruitMainView.GUESS_LABEL_INDEX].text = this.guessedNum;
             if (this.bonusWin < 0) {
@@ -611,6 +708,7 @@ var FruitMainView = (function(_super) {
                 this.guessCanBetTotal = this.bonusWin * 2;
                 this.setBonusWinLabText();
                 this.gameState = FruitMainView.STATE_GUESS_BETTING;
+                this.setLightBoxVisibleAndBlink(true,true);
             }
             else {
                 this.gameState = FruitMainView.STATE_GUESS_BETTING;
@@ -618,6 +716,7 @@ var FruitMainView = (function(_super) {
         }
         else {
             this.fruitBetLabelList[FruitMainView.GUESS_LABEL_INDEX].text = rand;
+            this.slowTime = 0;
         }
     };
 
@@ -633,17 +732,20 @@ var FruitMainView = (function(_super) {
         }
 
         this.showRandomNumInBetLab();
+        if (this.lightBox.visible) {
+            this.setLightBoxVisibleAndBlink(true,false);
+        }
 
         var guessBet = this.bonusWin;
         switch (betType) {
             case FruitMainView.BET_BTN_TYPE.Add: {
-                guessBet *= 2;
+                guessBet = this.bonusWin * 2;
                 if (this.bonusWin > this.balance) {
                     return;
                 }
 
                 if (guessBet >= this.guessCanBetTotal) {
-                    guessBet = this.guessedNum;
+                    guessBet = this.guessCanBetTotal;
                 }
                 break;
             }
@@ -662,6 +764,7 @@ var FruitMainView = (function(_super) {
             }
         }
 
+
         this.balance = App.player.balance - guessBet;
         this.setCreditLabText();
 
@@ -669,6 +772,7 @@ var FruitMainView = (function(_super) {
         this.setBonusWinLabText();
     };
 
+    //*改变押注的倍率
     FruitMainView.prototype.onChangeBetFactor = function () {
         var betFactor = this.betFactor;
         var betIndex = this.betFactorIndex;
@@ -689,6 +793,7 @@ var FruitMainView = (function(_super) {
         this.setBetTotalLabText();
     };
 
+    //*按下Go
     FruitMainView.prototype.onFruitRotaryRun = function () {
         if (!this.canTouchGoBtn) {
             return;
@@ -697,6 +802,8 @@ var FruitMainView = (function(_super) {
         var gameState = this.gameState;
 
         if (gameState == FruitMainView.STATE_GAME_INIT || gameState == FruitMainView.STATE_FRUIT_BETTING) {
+            //*在能够押注的状态下，获取本局的结果
+            this.setLightBoxVisibleAndBlink(false,false);
             this.setFruitCellBgGray();
             var betTotal = this.getFruitBetTotal();
             if (betTotal <= 0) {
@@ -720,10 +827,12 @@ var FruitMainView = (function(_super) {
             App.netManager.request(api, params, Laya.Handler.create(null, complete));
         }
         else if (gameState == FruitMainView.STATE_GUESS_BETTING) {
+            //*能够赌大小的情况下，按下，收回奖励金额
             this.updateGameStateToCanBet();
         }
     };
 
+    //*恢复界面的初始状态
     FruitMainView.prototype.updateGameStateToCanBet = function () {
         this.bonusWin = 0;
         this.guessCanBetTotal = 0;
@@ -735,6 +844,7 @@ var FruitMainView = (function(_super) {
         this.setCreditLabText();
         this.setBonusWinLabText();
         this.initFruitBettingList();
+        this.setLightBoxVisibleAndBlink(true,false);
 
         var fruitName = "";
         for (var index in this.fruitNameList) {
@@ -745,6 +855,7 @@ var FruitMainView = (function(_super) {
         this.gameState = FruitMainView.STATE_FRUIT_BETTING;
     };
 
+    //*开始表现转
     FruitMainView.prototype.rotaryRunning = function (result) {
         this.gameState = FruitMainView.STATE_ROTARY_RUNNING;
         App.uiManager.cleanSaveGlowFruitList();
@@ -773,6 +884,7 @@ var FruitMainView = (function(_super) {
         this.multipleLightMoving();
     };
 
+    //*清除上一局所有的灯
     FruitMainView.prototype.cleanFruitLights = function () {
         var fruitLightList = this.fruitLightList;
         var length = fruitLightList.length;
@@ -849,6 +961,7 @@ var FruitMainView = (function(_super) {
         }
     };
 
+    //*获得这一局lucky的位置
     FruitMainView.prototype.getLuckyPosThisRound = function () {
         if (!this._luckyPos) {
             var rotaryFruitList = this._resultFruitObj.rotaryFruits;
@@ -903,6 +1016,7 @@ var FruitMainView = (function(_super) {
         App.uiManager.saveGlowFruitIndex(fruitIndex);
     };
 
+    //*显示转盘停下来之后的结果
     FruitMainView.prototype.showFruitResultOnView = function () {
         this.gameState = FruitMainView.STATE_GUESS_BETTING;
         this.closeUpdatePromptTimer();
@@ -917,7 +1031,12 @@ var FruitMainView = (function(_super) {
         }
 
         if (this.bonusWin <= 0) {
+            //*没有奖金就是没有中奖，清除所有的状态
             this.updateGameStateToCanBet();
+        }
+        else {
+            //*中奖了，猜大小显示0
+            this.fruitBetLabelList[FruitMainView.GUESS_LABEL_INDEX].text = "0";
         }
     };
 
@@ -980,14 +1099,13 @@ var FruitMainView = (function(_super) {
             case  FruitMainView.STATE_FRUIT_BETTING: {
                 this.setFruitBetBtnsDisabled(false);
                 this.setGuessBetBtnsDisabled(true);
-
+                this.setFruitBetLightVisiable(true);
+                this.setArrowEffectVisible(false);
                 if (this.getFruitBetTotal() > 0) {
                     this.setGoBtnDisabled(false);
-                    this.setPromptLabText("GOGOGO！");
                 }
                 else {
                     this.setGoBtnDisabled(true);
-                    this.setPromptLabText("请押注！");
                 }
 
                 this.lightsUnBlinkOnView();
@@ -998,15 +1116,24 @@ var FruitMainView = (function(_super) {
                 this.setFruitBetBtnsDisabled(true);
                 this.setGuessBetBtnsDisabled(true);
                 this.setGoBtnDisabled(true);
+                this.setFruitBetLightVisiable(false);
+                this.setArrowEffectVisible(false);
                 break;
             }
             case FruitMainView.STATE_GUESS_BETTING: {
                 this.setFruitBetBtnsDisabled(true);
                 this.setGuessBetBtnsDisabled(false);
                 this.setGoBtnDisabled(false);
-                this.setPromptLabText("猜中大小奖励翻倍！");
+                this.setFruitBetLightVisiable(false);
+                this.setArrowEffectVisible(true);
                 break;
             }
+        }
+    };
+
+    FruitMainView.prototype.setFruitBetLightVisiable = function (visible) {
+        for (var index in this.fruitBetBtnEffects) {
+            this.fruitBetBtnEffects[index].visible = visible;
         }
     };
 
@@ -1031,7 +1158,7 @@ var FruitMainView = (function(_super) {
         else {
             this.goBtnEffect.visible = !disabled;
         }
-    }
+    };
 
     FruitMainView.prototype.getFruitBetTotal = function () {
         var index;

@@ -21,6 +21,10 @@ var Effect = (function(_super) {
 
     };
 
+    Effect.prototype.paused = function () {
+
+    };
+
     Effect.prototype.stop = function() {
         this.animation.stop();
     };

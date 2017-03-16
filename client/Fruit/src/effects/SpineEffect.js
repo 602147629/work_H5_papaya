@@ -16,9 +16,16 @@ var SpineEffect = (function(_super) {
         this.animation.on(Laya.Event.LABEL, this, this.animationEvent);
     };
 
-    SpineEffect.prototype.play = function(loop) {
-        loop = loop || !this.db.once;
-        this.animation.play(0, loop);
+    SpineEffect.prototype.play = function() {
+        this.animation.play(0, true);
+    };
+
+    SpineEffect.prototype.playOnce = function () {
+        this.animation.play(0, false);
+    };
+
+    SpineEffect.prototype.paused = function () {
+        this.animation.paused();
     };
 
     SpineEffect.prototype.animationEnd = function() {

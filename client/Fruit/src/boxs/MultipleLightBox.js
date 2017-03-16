@@ -21,6 +21,14 @@ var MultipleLightBox = (function(_super) {
         this.y = this.posList[0].y;
     };
 
+    //*设定初始的坐标
+    MultipleLightBox.prototype.setPositionByPosList = function (index) {
+        if (this.posList[index]) {
+            this.x = this.posList[index].x;
+            this.y = this.posList[index].y;
+        }
+    };
+
     MultipleLightBox.prototype.startMove = function (endIndex) {
         this.endIndex = endIndex;
         this.stopState = false;
@@ -99,6 +107,27 @@ var MultipleLightBox = (function(_super) {
                 glowNum.visible = true;
             }
         }
+    };
+
+    MultipleLightBox.prototype.doLightBlink = function () {
+        this.canDoBlinkAction = true;
+        this.blinkLight();
+    };
+
+    MultipleLightBox.prototype.blinkLight = function () {
+        var self = this;
+        var blinkAction = Blink.create(0.4, 2);
+        var callBack = CallFunc.create(Laya.Handler.create(this, function () {
+            if (self.canDoBlinkAction) {
+                self.blinkLight();
+            }
+        }));
+        var sequence = Sequence.create(blinkAction,callBack);
+        App.actionManager.addAction(sequence, this);
+    };
+
+    MultipleLightBox.prototype.stopLightBlink = function () {
+        this.canDoBlinkAction = false;
     };
 
     MultipleLightBox.SPEED_CONSTANT = 130;

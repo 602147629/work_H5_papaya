@@ -8,6 +8,25 @@ var LoaderView = (function(_super) {
     Laya.class(LoaderView, "LoaderView", _super);
 
     LoaderView.prototype.init = function() {
+        this.progress.value = 0;
+        var mAniPath = "assets/ani.effects/100001/poacher.sk";
+        var mFactory = new Laya.Templet();
+        mFactory.loadAni(mAniPath);
+        mFactory.on(Laya.Event.COMPLETE, this, this.initAction);
+        this.mFactory = mFactory;
+    };
+
+    LoaderView.prototype.completeHandler = function () {
+        this.event("logoActionStop");
+    };
+
+    LoaderView.prototype.initAction = function () {
+        var mArmature = this.mFactory.buildArmature(1);
+        mArmature.on(Laya.Event.STOPPED, this, this.completeHandler);
+        mArmature.x = this.actionNode.x;
+        mArmature.y = this.actionNode.y + 320;
+        this.addChild(mArmature);
+        mArmature.play(0, false);
     };
 
     LoaderView.prototype.start = function() {

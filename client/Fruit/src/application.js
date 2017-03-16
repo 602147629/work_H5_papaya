@@ -42,11 +42,14 @@ var Application = (function (_super) {
         console.log('application inited...');
     };
 
+    Application.initLoaderView = function () {
+        this.state = Application.STATE_PRELOADING;
+        this.runView(this.loaderView);
+    };
+
     Application.preload = function() {
         var self = this;
 
-        this.state = Application.STATE_PRELOADING;
-        this.runView(this.loaderView);
         var resources = this.assetsManager.getPreload();
         async.series([
             function (callback) {
@@ -256,7 +259,7 @@ var Application = (function (_super) {
     Application.start = function() {
         // 创建加载场景
         this.loaderView = new LoaderView();
-
+        this.loaderView.on("logoActionStop", this, this.preload);
         Laya.timer.frameLoop(1, this, this.loop);
 
         this.state = Application.STATE_STARTED;
@@ -273,7 +276,7 @@ var Application = (function (_super) {
 
         switch (this.state) {
             case Application.STATE_STARTED:
-                this.preload();
+                this.initLoaderView();
                 break;
             case Application.STATE_PRELOADING:
                 break;

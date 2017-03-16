@@ -13,6 +13,7 @@ var FruitLightBox = (function(_super) {
         this.startIndex             = posInfo.startIndex;                   //初始位置
         this.destroyIndex           = posInfo.destroyIndex;                 //是否要中途销毁 如果是尾随灯则需要中途销毁
         this.isLuckyRound           = posInfo.isLuckyRound;                 //是否转到幸运灯
+        this.lightIndex             = posInfo.lightIndex;                   //标记是否是第一个灯，因为第一个灯之后的灯就只转一下
         this.nextIndex              = this.startIndex + 1;                  //下一次要走到的位置
         this.canDoBlinkAction       = false;                                //控制能否闪烁
         this.moveTime               = 1;                                    //开始进行的时间 用于计算速度
@@ -123,7 +124,7 @@ var FruitLightBox = (function(_super) {
         App.uiManager.setFruitGlowByIndex(this.nextIndex - 1);
 
         var moveSpeed = this.calcMovingSpeed();
-
+        
         //控制尾随灯的销毁
         if (this.destroyIndex && this.destroyIndex > 0) {
             if (this._followLightClose) {
@@ -133,7 +134,7 @@ var FruitLightBox = (function(_super) {
             }
         }
 
-        if (this.isLuckyRound) {
+        if (this.isLuckyRound || (this.lightIndex && this.lightIndex > 1)) {
             if (this.endIndex ==  this.nextIndex - 1) {
                 //*已经停止
                 this.event(FruitLightBox.STOP_MOVE);
@@ -141,7 +142,7 @@ var FruitLightBox = (function(_super) {
                 return;
             }
         }
-        else {
+        else{
             //保证一定量的停止前滑行格子数量
             if (this._slideCount > FruitLightBox.LEAST_SLIDE_COUNT) {
                 if (this.endIndex == this.nextIndex - 1) {
@@ -173,7 +174,7 @@ var FruitLightBox = (function(_super) {
             this._lightJump = 3;
         }
 
-        if (this.isLuckyRound) {
+        if (this.isLuckyRound || (this.lightIndex && this.lightIndex > 1)) {
             delayTime = 30;
         }
 
@@ -244,8 +245,8 @@ var FruitLightBox = (function(_super) {
     FruitLightBox.BASE_SPEED            = 3;                //初始速度
     FruitLightBox.ACCELERATION_ASC      = 5;
     FruitLightBox.ACCELERATION_DESC     = -3;
-    FruitLightBox.TOP_SPEED             = 600;
-    FruitLightBox.ON_TOP_SPEED_COUNT    = 500;              //在最高速转动的格子数目
+    FruitLightBox.TOP_SPEED             = 500;
+    FruitLightBox.ON_TOP_SPEED_COUNT    = 73;               //在最高速转动的格子数目
     FruitLightBox.PREPARE_COUNT         = 7;                //准备加速的移动格子数
     FruitLightBox.LEAST_SLIDE_COUNT     = 10;               //停止前滑行至少格子数量
 
