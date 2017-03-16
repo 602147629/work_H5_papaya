@@ -141,6 +141,7 @@ var FruitMainView = (function(_super) {
         for (cellIndex; cellIndex < cellTotal; cellIndex++) {
             //*获取转盘上的格子
             singleCell = fruitRotaryUIBox.getChildByName("fruitBg_" + cellIndex);
+
             //*创建转盘的上的水果显示
             var fruit = this.rotaryfruitList[cellIndex];
             rotaryFruit = new FruitBox(fruit);
@@ -151,6 +152,25 @@ var FruitMainView = (function(_super) {
             rotaryFruit.zOrder = 10;
             this.fruitBgBox.addChild(rotaryFruit);
 
+            if (cellIndex == FruitMainView.GOLDEN_LUCK_INDEX) {
+                var goldRoatBg = new Laya.Image();
+                goldRoatBg.skin = "assets/ui.images/img_0004_mc1.png";
+                goldRoatBg.anchorX = 0.5;
+                goldRoatBg.anchorY = 0.5;
+                goldRoatBg.x = singleCell.x + 45;
+                goldRoatBg.y = singleCell.y + 44;
+                this.fruitBgBox.addChild(goldRoatBg);
+            }
+            else if (cellIndex == FruitMainView.BLUE_LUCK_INDEX) {
+                var blueRoatBg = new Laya.Image();
+                blueRoatBg.skin = "assets/ui.images/img_0005_mc1.png";
+                blueRoatBg.anchorX = 0.5;
+                blueRoatBg.anchorY = 0.5;
+                blueRoatBg.x = singleCell.x + 45;
+                blueRoatBg.y = singleCell.y + 44;
+                this.fruitBgBox.addChild(blueRoatBg);
+            }
+
             this.rotaryFruitBoxList.push(rotaryFruit);
             this.rotaryFruitCellList.push(singleCell);
         }
@@ -159,6 +179,8 @@ var FruitMainView = (function(_super) {
         App.uiManager.setAllRotaryFruits(this.rotaryFruitCellList);
         //*储存水果
         App.uiManager.setRotaryFruitBoxList(this.rotaryFruitBoxList);
+
+        this.setFruitCellBgGray();
     };
 
     FruitMainView.prototype.setFruitCellBgGray = function () {
@@ -181,6 +203,10 @@ var FruitMainView = (function(_super) {
                 }
             }
             this.rotaryFruitCellList[i].skin = skin;
+        }
+
+        for (var index in this.rotaryFruitBoxList) {
+            this.rotaryFruitBoxList[index].setFruitGray();
         }
     };
 
@@ -306,15 +332,40 @@ var FruitMainView = (function(_super) {
         this.goBtnEffect.blendMode = "light";
         this.goBtn.addChild(this.goBtnEffect);
 
+        this.eggsActions = {};
         var eggs = ["blue", "golden"];
         for (var i = 0; i < eggs.length; i++) {
            var eggName = eggs[i];
            this.initEggEffectAndAction(eggName);
         }
+        this.setAllEggActionVisible(false);
 
         this.initArrowEffect();
 
         this.initFruitBtnEffect();
+    };
+
+    FruitMainView.prototype.setEggActionVisible = function (type, visible) {
+        var actions;
+        if (type && typeof(visible) == "boolean") {
+            actions = this.eggsActions[type];
+            if (actions) {
+                for (var index in actions) {
+                    actions[index].visible = visible;
+                }
+            }
+        }
+    };
+
+    FruitMainView.prototype.setAllEggActionVisible = function (visible) {
+        if (typeof(visible) == "boolean") {
+            for (var index in this.eggsActions) {
+                var actions = this.eggsActions[index];
+                for (var actionIndex in actions) {
+                    actions[actionIndex].visible = visible;
+                }
+            }
+        }
     };
 
     //*luck的特效和动作
@@ -322,6 +373,7 @@ var FruitMainView = (function(_super) {
         var index = 0;
         var animName = "";
         var effectId = 10001;
+        this.eggsActions[type] = [];
         switch (type) {
             case "golden": {
                 index = FruitMainView.GOLDEN_LUCK_INDEX;
@@ -344,6 +396,7 @@ var FruitMainView = (function(_super) {
         rotaAction.y = singleCell.y;
         rotaAction.scaleX = 0.99;
         rotaAction.scaleY = 0.99;
+        rotaAction.zOrder = 100;
         this.fruitBgBox.addChild(rotaAction);
         rotaAction.play();
 
@@ -351,10 +404,13 @@ var FruitMainView = (function(_super) {
         if (effect) {
             effect.x = singleCell.x + 40;
             effect.y = singleCell.y + 106;
-            effect.zOrder = 10;
+            effect.zOrder = 100;
             this.fruitBgBox.addChild(effect);
             effect.play();
+            this.eggsActions[type].push(effect);
         }
+
+        this.eggsActions[type].push(rotaAction);
     };
 
     //*猜大小箭头动画和特效
@@ -844,7 +900,11 @@ var FruitMainView = (function(_super) {
         this.setCreditLabText();
         this.setBonusWinLabText();
         this.initFruitBettingList();
-        this.setLightBoxVisibleAndBlink(true,false);
+        this.setAllEggActionVisible(false);
+        
+        if (this.lightBox.visible) {
+            this.setLightBoxVisibleAndBlink(true,false);
+        }
 
         var fruitName = "";
         for (var index in this.fruitNameList) {
@@ -928,7 +988,7 @@ var FruitMainView = (function(_super) {
         };
 
         var light = new FruitLightBox(info);
-        light.on(FruitLightBox.CAN_CREATE_NEXT_LIGHT, this, this.lightStoppedMove);
+        light.on(FruitLightBox.CAN_CREATE_NEXT_LIGHT, this, this.lightStoppedMove, [endIndex]);
         light.on(FruitLightBox.STOP_MOVE, this, this.fruitActionInRoraty, [endIndex]);
         light.zOrder = 1;
         this.fruitBgBox.addChild(light);
@@ -980,9 +1040,17 @@ var FruitMainView = (function(_super) {
         return this._luckyPos;
     };
 
-    FruitMainView.prototype.lightStoppedMove = function () {
+    FruitMainView.prototype.lightStoppedMove = function (endIndex) {
         this._runningLightIndex ++;
-        this.showFruitResultPrompt();
+        if (endIndex) {
+            if (endIndex == FruitMainView.GOLDEN_LUCK_INDEX) {
+                this.setEggActionVisible("golden", true);
+            }
+            else if (endIndex == FruitMainView.BLUE_LUCK_INDEX) {
+                this.setEggActionVisible("blue", true);
+            }
+        }
+        // this.showFruitResultPrompt(); //*中奖提示
         if (this._runningLightIndex < this._runningObjLength) {
             this.lightRotating();
             return;
@@ -1186,16 +1254,16 @@ var FruitMainView = (function(_super) {
         High: "High"
     };
 
-    FruitMainView.BET_FRUIT_MAX = 99;
-    FruitMainView.BET_FACTOR_MAX = 99;
-    FruitMainView.BET_FACTOR_MIN = 1;
-
+    FruitMainView.BET_FRUIT_MAX       = 99;
+    FruitMainView.BET_FACTOR_MAX      = 99;
+    FruitMainView.BET_FACTOR_MIN      = 1;
+    
     FruitMainView.GRAY_ZERO_LAB_TOTAL = 8;
-
-    FruitMainView.GUESS_LABEL_INDEX = "guess";
-
-    FruitMainView.GOLDEN_LUCK_INDEX = 23;
-    FruitMainView.BLUE_LUCK_INDEX = 11;
+    
+    FruitMainView.GUESS_LABEL_INDEX   = "guess";
+    
+    FruitMainView.GOLDEN_LUCK_INDEX   = 23;
+    FruitMainView.BLUE_LUCK_INDEX     = 11;
 
     return FruitMainView;
 }(FruitMainViewUI));

@@ -25,7 +25,7 @@ var FruitBox = (function(_super) {
             this.showType = FruitBox.SHOW_TYPE.ONLY_FRUIT;
         }
 
-        this.setFruitUnLight();
+        this.setFruitGray();
     };
 
     FruitBox.prototype.setFruitLighting = function () {

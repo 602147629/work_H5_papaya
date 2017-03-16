@@ -24,10 +24,6 @@ var SpineEffect = (function(_super) {
         this.animation.play(0, false);
     };
 
-    SpineEffect.prototype.paused = function () {
-        this.animation.paused();
-    };
-
     SpineEffect.prototype.animationEnd = function() {
         if (this.db.once) {
             this.exit();

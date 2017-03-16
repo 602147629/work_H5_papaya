@@ -24,7 +24,7 @@ var LoaderView = (function(_super) {
         var mArmature = this.mFactory.buildArmature(1);
         mArmature.on(Laya.Event.STOPPED, this, this.completeHandler);
         mArmature.x = this.actionNode.x;
-        mArmature.y = this.actionNode.y + 320;
+        mArmature.y = this.actionNode.y + 400;
         this.addChild(mArmature);
         mArmature.play(0, false);
     };

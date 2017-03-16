@@ -242,12 +242,12 @@ var FruitLightBox = (function(_super) {
     FruitLightBox.STOP_MOVE             = "stopMove";
     FruitLightBox.CAN_CREATE_NEXT_LIGHT = "canCreateNextLight";
 
-    FruitLightBox.BASE_SPEED            = 3;                //初始速度
+    FruitLightBox.BASE_SPEED            = 5;                //初始速度
     FruitLightBox.ACCELERATION_ASC      = 5;
-    FruitLightBox.ACCELERATION_DESC     = -3;
+    FruitLightBox.ACCELERATION_DESC     = -5;
     FruitLightBox.TOP_SPEED             = 500;
     FruitLightBox.ON_TOP_SPEED_COUNT    = 73;               //在最高速转动的格子数目
-    FruitLightBox.PREPARE_COUNT         = 7;                //准备加速的移动格子数
+    FruitLightBox.PREPARE_COUNT         = 10;               //准备加速的移动格子数
     FruitLightBox.LEAST_SLIDE_COUNT     = 10;               //停止前滑行至少格子数量
 
     return FruitLightBox;

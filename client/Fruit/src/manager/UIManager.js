@@ -68,7 +68,7 @@ var UIManager = (function(_super) {
         this.glowFruitList = [];
         var lightFruit = this.rotaryFruitBoxList;
         for (var index in lightFruit) {
-            lightFruit[index].setFruitUnLight();
+            lightFruit[index].setFruitGray();
         }
     };
 
