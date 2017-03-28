@@ -141,6 +141,8 @@ var FruitLightBox = (function(_super) {
                 this.willCreateNextLightBlink();
                 return;
             }
+
+            var delayTime = 30;
         }
         else{
             //保证一定量的停止前滑行格子数量
@@ -152,33 +154,28 @@ var FruitLightBox = (function(_super) {
                     return;
                 }
             }
-        }
+            //跳灯数默认1 每次都需要默认一下
+            this._lightJump = 1;
 
-        //跳灯数默认1 每次都需要默认一下
-        this._lightJump = 1;
+            //当前时间戳
+            var nowMillisecond = Papaya.moment().format('x');
+            //这个时间是多少毫秒要移动的格子数
+            var delayTime = Math.ceil(1000 / moveSpeed);
+            var timeDiff = nowMillisecond - this._lastMoveStamp;
+            
+            // delayTime < 20 接近1帧一格之后才开始做跳格处理
+            // this._lastMoveStamp > 0 这个是初始值保护 防止第一次就跳了
+            // timeDiff > delayTime  时间差比所需时间长 说明有需要调格了 因为两次表演之间的空隙已经比需要的大了
+            if (delayTime < 20 && this._lastMoveStamp > 0 && timeDiff > delayTime) {
+                this._lightJump += Math.floor(timeDiff / delayTime);
+            }
+            // 不需要跳太厉害 可以尝试去掉这里 会发现无法欺骗人眼了
+            if (this._lightJump > 3) {
+                this._lightJump = 3;
+            }
 
-        //当前时间戳
-        var nowMillisecond = Papaya.moment().format('x');
-        //这个时间是多少毫秒要移动的格子数
-        var delayTime = Math.ceil(1000 / moveSpeed);
-        var timeDiff = nowMillisecond - this._lastMoveStamp;
-        
-        // delayTime < 20 接近1帧一格之后才开始做跳格处理
-        // this._lastMoveStamp > 0 这个是初始值保护 防止第一次就跳了
-        // timeDiff > delayTime  时间差比所需时间长 说明有需要调格了 因为两次表演之间的空隙已经比需要的大了
-        if (delayTime < 20 && this._lastMoveStamp > 0 && timeDiff > delayTime) {
-            this._lightJump += Math.floor(timeDiff / delayTime);
+            this._lastMoveStamp = nowMillisecond;          //小x是毫秒
         }
-        // 不需要跳太厉害 可以尝试去掉这里 会发现无法欺骗人眼了
-        if (this._lightJump > 3) {
-            this._lightJump = 3;
-        }
-
-        if (this.isLuckyRound || (this.lightIndex && this.lightIndex > 1)) {
-            delayTime = 30;
-        }
-
-        this._lastMoveStamp = nowMillisecond;          //小x是毫秒
 
         Laya.timer.once(delayTime, this, this.move);
     };
@@ -245,10 +242,10 @@ var FruitLightBox = (function(_super) {
     FruitLightBox.BASE_SPEED            = 5;                //初始速度
     FruitLightBox.ACCELERATION_ASC      = 5;
     FruitLightBox.ACCELERATION_DESC     = -5;
-    FruitLightBox.TOP_SPEED             = 500;
-    FruitLightBox.ON_TOP_SPEED_COUNT    = 73;               //在最高速转动的格子数目
+    FruitLightBox.TOP_SPEED             = 300;
+    FruitLightBox.ON_TOP_SPEED_COUNT    = 50;               //在最高速转动的格子数目
     FruitLightBox.PREPARE_COUNT         = 10;               //准备加速的移动格子数
-    FruitLightBox.LEAST_SLIDE_COUNT     = 10;               //停止前滑行至少格子数量
+    FruitLightBox.LEAST_SLIDE_COUNT     = 5;               //停止前滑行至少格子数量
 
     return FruitLightBox;
 }(FruitLightBoxUI));

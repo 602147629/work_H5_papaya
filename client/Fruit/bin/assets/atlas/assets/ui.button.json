@@ -128,8 +128,8 @@
         },
         "btn_007.png": {
             "frame": {
-                "x": 319,
-                "y": 124,
+                "x": 0,
+                "y": 296,
                 "w": 47,
                 "h": 47,
                 "idx": 0
@@ -143,6 +143,27 @@
             "sourceSize": {
                 "w": 47,
                 "h": 47
+            },
+            "rotated": false,
+            "trimed": false
+        },
+        "btn_008.png": {
+            "frame": {
+                "x": 319,
+                "y": 124,
+                "w": 75,
+                "h": 150,
+                "idx": 0
+            },
+            "spriteSourceSize": {
+                "x": 0,
+                "y": 0,
+                "w": 75,
+                "h": 150
+            },
+            "sourceSize": {
+                "w": 75,
+                "h": 150
             },
             "rotated": false,
             "trimed": false

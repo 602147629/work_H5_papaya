@@ -72,17 +72,17 @@ var Application = (function (_super) {
                 Laya.loader.load(resources.images, Laya.Handler.create(null, onComplete), Laya.Handler.create(null, onProgress, null, false));
             },
 
-            //function (callback) {
-            //    self.loaderView.setText("正在加载音乐音效......");
-            //    var onComplete = function () {
-            //        callback(null);
-            //    };
-            //    var onProgress = function (e) {
-            //        self.loaderView.changeValue(e);
-            //    };
-            //
-            //    Laya.loader.load(resources.sounds, Laya.Handler.create(null, onComplete), Laya.Handler.create(null, onProgress, null, false));
-            //},
+            function (callback) {
+                self.loaderView.setText("正在加载音乐音效......");
+                var onComplete = function () {
+                    callback(null);
+                };
+                var onProgress = function (e) {
+                    self.loaderView.changeValue(e);
+                };
+
+                Laya.loader.load(resources.sounds, Laya.Handler.create(null, onComplete), Laya.Handler.create(null, onProgress, null, false));
+            },
 
             function(callback) {
                 self.loaderView.setText("正在加载字体......");

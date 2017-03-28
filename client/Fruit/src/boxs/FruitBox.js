@@ -14,11 +14,8 @@ var FruitBox = (function(_super) {
     FruitBox.prototype.init = function () {
         this.bigIcon.skin = "";
         this.middleIcon.skin = "";
-        this.numLab.text = "";
-        this.numLab.font = "brown";
 
         if (this.multiple > 1) {
-            this.numLab.text = "X" + this.multiple;
             this.showType = FruitBox.SHOW_TYPE.HAVE_MULTIPLE;
         }
         else {

@@ -21,12 +21,8 @@ var FruitRecordBox = (function(_super) {
 
         this.bigIcon.skin = "";
         this.middleIcon.skin = "";
-        this.numLab.text = "";
-        this.numLab.font = "brown";
-
         if (multiple > 1) {
             this.middleIcon.skin = App.uiManager.getMiddleFruitIconPath(fruitName);
-            this.numLab.text = "X" + multiple;
         }
         else {
             this.bigIcon.skin = App.uiManager.getBigFruitIconPath(fruitName);

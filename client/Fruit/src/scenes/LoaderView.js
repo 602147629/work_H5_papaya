@@ -14,6 +14,7 @@ var LoaderView = (function(_super) {
         mFactory.loadAni(mAniPath);
         mFactory.on(Laya.Event.COMPLETE, this, this.initAction);
         this.mFactory = mFactory;
+        Laya.SoundManager.playMusic("assets/sound/loading.mp3");
     };
 
     LoaderView.prototype.completeHandler = function () {

@@ -61,28 +61,8 @@
         },
         {
             "x":15,
-            "type":"Label",
-            "props":{"y":53,"x":3,"width":83,"var":"numLab","text":"000000","height":22,"color":"#ffffff","align":"center"},
-            "nodeParent":1,
-            "label":"Label(numLab)",
-            "isDirectory":false,
-            "isAniNode":true,
-            "hasChild":false,
-            "frames":[
-                {
-                    "type":1,
-                    "props":{"text":"label"},
-                    "frame":0,
-                    "__InPool":false
-                }],
-            "compId":3,
-            "child":[
-                ]
-        },
-        {
-            "x":15,
             "type":"Image",
-            "props":{"y":30,"x":45,"var":"middleIcon","skin":"assets/ui.main/icon_77-M.png","anchorY":0.5,"anchorX":0.5},
+            "props":{"y":45,"x":45,"var":"middleIcon","skin":"assets/ui.main/icon_77-M.png","anchorY":0.5,"anchorX":0.5},
             "nodeParent":1,
             "label":"Image(middleIcon)",
             "isDirectory":false,

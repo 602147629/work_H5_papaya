@@ -1,3 +1,4 @@
+//*倍率灯对象
 var MultipleLightBox = (function(_super) {
     function MultipleLightBox(posList) {
         MultipleLightBox.super(this);
@@ -130,8 +131,8 @@ var MultipleLightBox = (function(_super) {
         this.canDoBlinkAction = false;
     };
 
-    MultipleLightBox.SPEED_CONSTANT = 130;
-    MultipleLightBox.ACCELERATION = -8;
+    MultipleLightBox.SPEED_CONSTANT = 100;
+    MultipleLightBox.ACCELERATION = -7;
 
     return MultipleLightBox;
 }(MultipleLightBoxUI));
