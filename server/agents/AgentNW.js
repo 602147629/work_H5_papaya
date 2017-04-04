@@ -6,7 +6,7 @@ var util = require('util');
 /*
  * Server Dependencies
  */
-var debug = require('debug')('papaya:agent:base');
+var debug = require('debug')('papaya:agent:nw');
 var PapayaDB = require('../models/papaya');
 var Agent = require('./Agent');
 
@@ -24,7 +24,8 @@ util.inherits(AgentNW, Agent);
 
 var proto = AgentNW.prototype;
 
-proto.getBalance = function(token, callback) {
+proto.getBalance = function(req, callback) {
+    var token = req.token;
     var userID = token.userID;
     var Credit = PapayaDB.models.credit;
 
@@ -48,7 +49,8 @@ proto.getBalance = function(token, callback) {
     });
 };
 
-proto.deposit = function(token, amount, callback) {
+proto.deposit = function(req, amount, callback) {
+    var token = req.token;
     var userID = token.userID;
     var Credit = PapayaDB.models.credit;
 
@@ -66,7 +68,8 @@ proto.deposit = function(token, amount, callback) {
     })
 };
 
-proto.withdraw = function(token, amount, callback) {
+proto.withdraw = function(req, amount, callback) {
+    var token = req.token;
     var userID = token.userID;
     var Credit = PapayaDB.models.credit;
 

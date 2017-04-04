@@ -48,4 +48,57 @@
     Utils.random_number = function(max) {
         return Utils.range_value(0, max);
     };
+
+    // 将数字的小数点转换成A (replaceSymbol：被替换的字符，transformSymbol：替换后的字符)
+    Utils.transform_Font_Type = function(number, replaceSymbol, transformSymbol) {
+        var str = String(number);
+        var transformStr = transformSymbol || "A";
+        var replaceStr = replaceSymbol || ".";
+
+        return str.replace(replaceStr,transformStr);
+    };
+
+    // 分割数字，每3位加个逗号
+    Utils.format_By_Comma = function(number)
+    {
+        var str = String(number);
+        var newStr = "";
+        
+        var format = function(params){
+            var resultStr = "";
+            var count = 0;
+            for(var index = params.length-1 ; index >= 0 ; index--)
+            {
+                if(count % 3 == 0 && count != 0)
+                {
+                    resultStr = params.charAt(index) + "," + resultStr;
+                }
+                else
+                {
+                    resultStr = params.charAt(index) + resultStr;
+                }
+                count++;
+            }
+            return resultStr;
+        }
+
+
+        if(str.indexOf(".") == -1)
+        {
+            newStr = format(str);
+        }
+        else
+        {
+            // 小数点后的数字
+            var commaRight = str.slice(str.indexOf("."));
+
+            // 小数点前的数字
+            var commaLeft = str.slice(0,str.indexOf("."));
+
+            newStr = format(commaLeft);
+            newStr += commaRight;
+        }
+        
+        return newStr;
+    }
 }(Papaya));

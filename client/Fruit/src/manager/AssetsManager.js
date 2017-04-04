@@ -797,7 +797,6 @@ var AssetsManager = (function(_super) {
     };
 
     __proto.playSound = function(name, loop) {
-        console.log(name);
         var url = this.getSound(name);
         if (!loop) {
             loop = 1;

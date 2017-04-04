@@ -3,20 +3,34 @@
 
     var app = angular.module('app');
 
-    app.run(['$ionicPlatform',
-        function($ionicPlatform) {
-            $ionicPlatform.ready(function() {
-                // Hide the accessory bar by default (remove this to show the accessory bar above the keyboard
-                // for form inputs)
-                if (window.cordova && window.cordova.plugins && window.cordova.plugins.Keyboard) {
-                    cordova.plugins.Keyboard.hideKeyboardAccessoryBar(true);
-                    cordova.plugins.Keyboard.disableScroll(true);
+    // app.run(['$ionicPlatform',
+    //     function($ionicPlatform) {
+    //         $ionicPlatform.ready(function() {
+    //             // Hide the accessory bar by default (remove this to show the accessory bar above the keyboard
+    //             // for form inputs)
+    //             if (window.cordova && window.cordova.plugins && window.cordova.plugins.Keyboard) {
+    //                 cordova.plugins.Keyboard.hideKeyboardAccessoryBar(true);
+    //                 cordova.plugins.Keyboard.disableScroll(true);
+    //
+    //             }
+    //             if (window.StatusBar) {
+    //                 // org.apache.cordova.statusbar required
+    //                 StatusBar.styleDefault();
+    //             }
+    //         });
+    //     }
+    // ]);
 
-                }
-                if (window.StatusBar) {
-                    // org.apache.cordova.statusbar required
-                    StatusBar.styleDefault();
-                }
+    app.run(['$rootScope', '$log',
+        function($rootScope, $log) {
+            $rootScope.$on('$stateChangeSuccess', function(event, toState, toParams, fromState, fromParams){
+                $log.debug('successfully changed states') ;
+
+                $log.debug('event', event);
+                $log.debug('toState', toState);
+                $log.debug('toParams', toParams);
+                $log.debug('fromState', fromState);
+                $log.debug('fromParams', fromParams);
             });
         }
     ]);
@@ -30,14 +44,18 @@
             $stateProvider
 
                 // setup an abstract state for the tabs directive
-                .state('tab', {
-                    url: '/tab',
+                .state('main', {
+                    url: '/main',
                     abstract: true,
-                    templateUrl: 'views/tabs.html'
+                    views: {
+                        'main': {
+                            templateUrl: 'views/tabs.html'
+                        }
+                    }
                 })
 
                 // Each tab has its own nav history stack:
-                .state('tab.home', {
+                .state('main.home', {
                     url: '/home',
                     views: {
                         'tab-home': {
@@ -47,7 +65,7 @@
                     }
                 })
 
-                .state('tab.gift', {
+                .state('main.gift', {
                     url: '/gift',
                     views: {
                         'tab-gift': {
@@ -56,7 +74,7 @@
                         }
                     }
                 })
-                .state('tab.gift-detail', {
+                .state('main.gift-detail', {
                     url: '/detail/:chatId',
                     views: {
                         'tab-gift': {
@@ -66,7 +84,7 @@
                     }
                 })
 
-                .state('tab.account', {
+                .state('main.account', {
                     url: '/account',
                     views: {
                         'tab-account': {
@@ -77,7 +95,7 @@
                 });
 
             // if none of the above states are matched, use this as the fallback
-            $urlRouterProvider.otherwise('/tab/home');
+            $urlRouterProvider.otherwise('/main/home');
         }
     ]);
 }());

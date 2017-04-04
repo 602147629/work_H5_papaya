@@ -18,7 +18,7 @@ var Application = (function (_super) {
         this.animManager         = new AnimationManager();
 
         // Controllers
-        this.game = null;
+        this.game = new Papaya.DiamondDeal.Game();
 
         // Modules
         this.player = null;
@@ -68,6 +68,11 @@ var Application = (function (_super) {
             function (callback) {
                 self.loaderView.setText("正在加载音乐音效......");
 
+                if(resources.sounds.length == 0)
+                {
+                    callback(null);
+                };
+
                 var onComplete = function () {
                     callback(null);
                 };
@@ -80,6 +85,12 @@ var Application = (function (_super) {
 
             function(callback) {
                 self.loaderView.setText("正在加载字体......");
+
+                if(resources.fonts.length == 0)
+                {
+                    callback(null);
+                    return;
+                };
 
                 var onComplete = function () {
                     callback(null);
@@ -117,8 +128,8 @@ var Application = (function (_super) {
 
             self.state = Application.STATE_PRELOADED;
 
-            //self.tableView          = new TableView();
-            //self.doubleView         = new DoubleView();
+            self.battleView          = new BattleView();
+            self.betView             = new BetView();
 
             App.assetsManager.playMusic("music");
         });
@@ -175,8 +186,8 @@ var Application = (function (_super) {
                 return;
             }
 
+            data.player.balance = Math.floor(Number(data.player.balance));
             self.player = new Papaya.Player(data.player);
-
             self.state = Application.STATE_SYNCHRONIZED;
             self.loaderView.setText("同步成功!");
 
@@ -191,13 +202,24 @@ var Application = (function (_super) {
 
     Application.enter = function() {
         var self = this;
+
         var onComplete = function(err, data) {
             if (err != null) {
                 Laya.timer.once(1000, self, self.enter);
                 return;
             }
-            self.state = Application.STATE_ENTERED;
+
             self.loaderView.setText("进入成功!");
+
+            if(!data.nothing)
+            {
+                self.inheritLastTime(data);
+                self.state = Application.STATE_RUNNING;
+            }
+            else
+            {
+                self.state = Application.STATE_ENTERED;
+            }
 
             console.log("account entered...", JSON.stringify(data));
         };
@@ -205,9 +227,14 @@ var Application = (function (_super) {
         self.loaderView.setText("正在进入游戏...");
         this.state = Application.STATE_ENTERING;
 
-        var api = "/lucky5/enter";
+        var api = "/diamondDeal/enter";
         var params = {};
         this.netManager.request(api, params, Laya.Handler.create(null, onComplete));
+    };
+
+    Application.inheritLastTime = function(data){
+        this.runView(this.battleView);
+        this.battleView.inheritLastTime(data);
     };
 
     Application.getRunView = function() {
@@ -217,6 +244,7 @@ var Application = (function (_super) {
     Application.runView = function(view) {
         if (this._runningView) {
             this.sceneLayer.removeChild(this._runningView);
+            this._runningView.dispose();
         }
 
         this._runningView = view;
@@ -235,6 +263,19 @@ var Application = (function (_super) {
 
     Application.stop = function() {
 
+    };
+
+    Application.runBetView = function() {
+        this.runView(this.betView);
+        this.betView.init();
+        this.state = Application.STATE_RUNNING;
+    };
+
+    Application.runBattleView = function(data) {
+        this.runView(this.battleView);
+        //this.battleView.init();
+        this.battleView.gameStart(data);
+        this.state = Application.STATE_RUNNING;
     };
 
     Application.loop = function() {
@@ -268,6 +309,8 @@ var Application = (function (_super) {
             case Application.STATE_ENTERING:
                 break;
             case Application.STATE_ENTERED:
+                this.runBetView();
+                //this.runBattleView();
                 break;
             case Application.STATE_RUNNING:
                 running = true;

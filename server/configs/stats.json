@@ -13,6 +13,13 @@
     "options": {}
   },
 
+  "testgg": {
+    "port":    6379,
+    "addr":    "127.0.0.1",
+    "db":      2,
+    "options": {}
+  },
+
   "development": {
     "port":    6379,
     "addr":    "127.0.0.1",

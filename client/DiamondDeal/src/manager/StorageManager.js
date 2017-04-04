@@ -3,6 +3,7 @@ var StorageManager = (function(_super) {
     
     function StorageManager() {
         this.storage = localStorage || {};
+        //delete  this.storage.deviceId;
         this.aesKey = CryptoJS.enc.Utf8.parse(AppKey);
 
         this.init();

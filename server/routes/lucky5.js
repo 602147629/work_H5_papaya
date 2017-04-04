@@ -58,23 +58,51 @@ router.use(function(req, res, next) {
 router.get('/enter', function(req, res) {
     var data = {};
     var game = req.game;
+    var profile = req.profile;
 
-    switch (game.state) {
-        case Lucky5.Game.STATE.READY:
-        case Lucky5.Game.STATE.STARTED:
-        case Lucky5.Game.STATE.SHUFFLED:
-            break;
-        case Lucky5.Game.STATE.DEALED:
-            break;
-        case Lucky5.Game.STATE.DRAWED:
-            break;
-        case Lucky5.Game.STATE.ENDED:
-            break;
-        case Lucky5.Game.STATE.DOUBLE:
-            break;
-    }
+    game.state = Lucky5.Game.STATE.READY;
 
-    res.JSONP(Code.OK, null, data);
+    profile.data = game.toString();
+    profile.save().then(function() {
+        res.JSONP(Code.OK, null, data);
+    }).catch(function(e) {
+        debug(e);
+        res.JSONP(Code.Failed, Code.INTERNAL.MySQL_ERROR);
+    });
+
+    // switch (game.state) {
+    //     case Lucky5.Game.STATE.READY:
+    //     case Lucky5.Game.STATE.STARTED:
+    //     case Lucky5.Game.STATE.SHUFFLED:
+    //         break;
+    //     case Lucky5.Game.STATE.DEALED:
+    //         break;
+    //     case Lucky5.Game.STATE.DRAWED:
+    //         break;
+    //     case Lucky5.Game.STATE.ENDED:
+    //         break;
+    //     case Lucky5.Game.STATE.DOUBLE:
+    //         break;
+    // }
+    //
+    //
+    // res.JSONP(Code.OK, null, data);
+});
+
+router.get('/back', function(req, res) {
+    var data = {};
+    var game = req.game;
+    var profile = req.profile;
+
+    game.state = Lucky5.Game.STATE.READY;
+
+    profile.data = game.toString();
+    profile.save().then(function() {
+        res.JSONP(Code.OK, null, data);
+    }).catch(function(e) {
+        debug(e);
+        res.JSONP(Code.Failed, Code.INTERNAL.MySQL_ERROR);
+    })
 });
 
 router.get('/deal', function(req, res, next) {
@@ -84,6 +112,10 @@ router.get('/deal', function(req, res, next) {
     var game = req.game;
     var profile = req.profile;
     var agent = cacheManager.getAgent(req.user.agent);
+
+    if (game.state != Lucky5.Game.STATE.ENDED && game.state != Lucky5.Game.STATE.READY) {
+        return res.JSONP(Code.Failed, Code.RESPONSE.GAME_STATE_ERROR);
+    }
 
     async.series([
         // 发牌处理
@@ -100,7 +132,7 @@ router.get('/deal', function(req, res, next) {
 
         // 调用上分接口
         function(callback) {
-            agent.withdraw(req.token, game.betAmount, function(err, balance) {
+            agent.withdraw(req, game.betAmount * 100, function(err, balance) {
                 if (err != null) {
                     callback(err);
                     return;
@@ -139,6 +171,10 @@ router.get('/draw', function(req, res) {
     var profile = req.profile;
     var agent = cacheManager.getAgent(req.user.agent);
 
+    if (game.state != Lucky5.Game.STATE.DEALED) {
+        return res.JSONP(Code.Failed, Code.RESPONSE.GAME_STATE_ERROR);
+    }
+
     async.series([
         function(callback) {
             game.hold(hold);
@@ -157,7 +193,7 @@ router.get('/draw', function(req, res) {
         // 调用下分接口
         function(callback) {
             if (game.score > 0) {
-                agent.deposit(req.token, data.score, function(err, balance) {
+                agent.deposit(req, data.score * 100, function(err, balance) {
                     if (err != null) {
                         callback(err);
                         return;
@@ -198,6 +234,10 @@ router.get('/double', function(req, res, next) {
     var double = game.double;
     var profile = req.profile;
 
+    if (game.state != Lucky5.Game.STATE.ENDED || game.result == Lucky5.Poker.NOTHING) {
+        return res.JSONP(Code.Failed, Code.RESPONSE.GAME_STATE_ERROR);
+    }
+
     async.series([
         function(callback) {
             game.enterDouble();
@@ -236,6 +276,10 @@ router.get('/double/deal', function(req, res, next) {
 
     var type = req.query.type;
 
+    if (game.state != Lucky5.Game.STATE.DOUBLE) {
+        return res.JSONP(Code.Failed, Code.RESPONSE.GAME_STATE_ERROR);
+    }
+
     async.series([
         // 游戏处理
         function(callback) {
@@ -251,7 +295,7 @@ router.get('/double/deal', function(req, res, next) {
 
         // 调用上分接口
         function(callback) {
-            agent.withdraw(req.token, double.betAmount, function(err, balance) {
+            agent.withdraw(req, double.betAmount * 100, function(err, balance) {
                 if (err != null) {
                     callback(err);
                     return;
@@ -291,6 +335,10 @@ router.get('/double/draw', function(req, res, next) {
 
     var selected = req.query.selected;
 
+    if (game.state != Lucky5.Game.STATE.DOUBLE) {
+        return res.JSONP(Code.Failed, Code.RESPONSE.GAME_STATE_ERROR);
+    }
+
     async.series([
         // 游戏处理
         function(callback) {
@@ -306,7 +354,7 @@ router.get('/double/draw', function(req, res, next) {
         // 调用下分接口
         function(callback) {
             if (data.score > 0) {
-                agent.deposit(req.token, data.score, function(err, balance) {
+                agent.deposit(req, data.score * 100, function(err, balance) {
                     if (err != null) {
                         callback(err);
                         return;

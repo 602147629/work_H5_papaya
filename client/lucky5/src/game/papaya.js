@@ -1,4 +1,4 @@
-/*! lucky5 2017-03-05 */
+/*! lucky5 2017-03-22 */
 (function() {
     // Establish the root object,
     // `window` (`self`) in the browser,
@@ -512,6 +512,7 @@
     Game.ID_FRUIT          = 100002;
     Game.ID_POKERGO        = 100003;
     Game.ID_POKERGOGO      = 100004;
+    Game.ID_SHARK          = 100005;
 }(Papaya));
 (function(root) {
     var Code = root.Code = {
@@ -523,7 +524,10 @@
             MySQL_ERROR:         1001,
             REDIS_ERROR:         1002,
             HTTP_ERROR:          1003,
-            TOKEN_ERROR:         1004
+            TOKEN_ERROR:         1004,
+            HTTP_STATUS_ERROR:   1005,
+            HTTP_BODY_ERROR:     1006,
+            HTTP_RESP_ERROR:     1007,
         },
 
         REQUEST: {
@@ -531,11 +535,13 @@
             INVALID_UUID:        1501,
             INVALID_SIGNATURE:   1502,
             INVALID_TOKEN:       1503,
-            INVALID_STATE:       1504
+            INVALID_STATE:       1504,
+            INVALID_BET_AMOUNT:  1505
         },
 
         RESPONSE: {
             BALANCE_INSUFFICIENT: 1600,
+            GAME_STATE_ERROR:     1601
         }
     };
 
@@ -548,14 +554,19 @@
     root.Message[Code.INTERNAL.REDIS_ERROR]                  = "redis error";
     root.Message[Code.INTERNAL.HTTP_ERROR]                   = "http request error";
     root.Message[Code.INTERNAL.TOKEN_ERROR]                  = "jwt token error";
+    root.Message[Code.INTERNAL.HTTP_STATUS_ERROR]            = "http status error";
+    root.Message[Code.INTERNAL.HTTP_BODY_ERROR]              = "http body error";
+    root.Message[Code.INTERNAL.HTTP_RESP_ERROR]              = "http response error";
 
     root.Message[Code.REQUEST.INVALID_PARAMS]                = "Invalid request params";
     root.Message[Code.REQUEST.INVALID_UUID]                  = "Invalid uuid format";
     root.Message[Code.REQUEST.INVALID_SIGNATURE]             = "Invalid signature";
     root.Message[Code.REQUEST.INVALID_TOKEN]                 = "Invalid jwt";
     root.Message[Code.REQUEST.INVALID_STATE]                 = "Invalid state";
+    root.Message[Code.REQUEST.INVALID_BET_AMOUNT]            = "Invalid bet amount";
 
     root.Message[Code.RESPONSE.BALANCE_INSUFFICIENT]         = "Balance insufficient";
+    root.Message[Code.RESPONSE.GAME_STATE_ERROR]             = "Game state error";
 
 }(Papaya));
 (function(root) {
@@ -608,6 +619,59 @@
     Utils.random_number = function(max) {
         return Utils.range_value(0, max);
     };
+
+    // 将数字的小数点转换成A (replaceSymbol：被替换的字符，transformSymbol：替换后的字符)
+    Utils.transform_Font_Type = function(number, replaceSymbol, transformSymbol) {
+        var str = String(number);
+        var transformStr = transformSymbol || "A";
+        var replaceStr = replaceSymbol || ".";
+
+        return str.replace(replaceStr,transformStr);
+    };
+
+    // 分割数字，每3位加个逗号
+    Utils.format_By_Comma = function(number)
+    {
+        var str = String(number);
+        var newStr = "";
+        
+        var format = function(params){
+            var resultStr = "";
+            var count = 0;
+            for(var index = params.length-1 ; index >= 0 ; index--)
+            {
+                if(count % 3 == 0 && count != 0)
+                {
+                    resultStr = params.charAt(index) + "," + resultStr;
+                }
+                else
+                {
+                    resultStr = params.charAt(index) + resultStr;
+                }
+                count++;
+            }
+            return resultStr;
+        }
+
+
+        if(str.indexOf(".") == -1)
+        {
+            newStr = format(str);
+        }
+        else
+        {
+            // 小数点后的数字
+            var commaRight = str.slice(str.indexOf("."));
+
+            // 小数点前的数字
+            var commaLeft = str.slice(0,str.indexOf("."));
+
+            newStr = format(commaLeft);
+            newStr += commaRight;
+        }
+        
+        return newStr;
+    }
 }(Papaya));
 
 (function(root) {

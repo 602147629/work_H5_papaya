@@ -1,4 +1,4 @@
-/*! fruit 2017-03-07 */
+/*! fruit 2017-04-05 */
 (function() {
     // Establish the root object,
     // `window` (`self`) in the browser,
@@ -513,6 +513,7 @@
     Game.ID_POKERGO        = 100003;
     Game.ID_POKERGOGO      = 100004;
     Game.ID_SHARK          = 100005;
+    Game.ID_DIAMONDDEAL    = 100006;
 }(Papaya));
 (function(root) {
     var Code = root.Code = {
@@ -524,7 +525,10 @@
             MySQL_ERROR:         1001,
             REDIS_ERROR:         1002,
             HTTP_ERROR:          1003,
-            TOKEN_ERROR:         1004
+            TOKEN_ERROR:         1004,
+            HTTP_STATUS_ERROR:   1005,
+            HTTP_BODY_ERROR:     1006,
+            HTTP_RESP_ERROR:     1007,
         },
 
         REQUEST: {
@@ -532,11 +536,13 @@
             INVALID_UUID:        1501,
             INVALID_SIGNATURE:   1502,
             INVALID_TOKEN:       1503,
-            INVALID_STATE:       1504
+            INVALID_STATE:       1504,
+            INVALID_BET_AMOUNT:  1505
         },
 
         RESPONSE: {
             BALANCE_INSUFFICIENT: 1600,
+            GAME_STATE_ERROR:     1601
         }
     };
 
@@ -549,14 +555,19 @@
     root.Message[Code.INTERNAL.REDIS_ERROR]                  = "redis error";
     root.Message[Code.INTERNAL.HTTP_ERROR]                   = "http request error";
     root.Message[Code.INTERNAL.TOKEN_ERROR]                  = "jwt token error";
+    root.Message[Code.INTERNAL.HTTP_STATUS_ERROR]            = "http status error";
+    root.Message[Code.INTERNAL.HTTP_BODY_ERROR]              = "http body error";
+    root.Message[Code.INTERNAL.HTTP_RESP_ERROR]              = "http response error";
 
     root.Message[Code.REQUEST.INVALID_PARAMS]                = "Invalid request params";
     root.Message[Code.REQUEST.INVALID_UUID]                  = "Invalid uuid format";
     root.Message[Code.REQUEST.INVALID_SIGNATURE]             = "Invalid signature";
     root.Message[Code.REQUEST.INVALID_TOKEN]                 = "Invalid jwt";
     root.Message[Code.REQUEST.INVALID_STATE]                 = "Invalid state";
+    root.Message[Code.REQUEST.INVALID_BET_AMOUNT]            = "Invalid bet amount";
 
     root.Message[Code.RESPONSE.BALANCE_INSUFFICIENT]         = "Balance insufficient";
+    root.Message[Code.RESPONSE.GAME_STATE_ERROR]             = "Game state error";
 
 }(Papaya));
 (function(root) {
@@ -609,6 +620,59 @@
     Utils.random_number = function(max) {
         return Utils.range_value(0, max);
     };
+
+    // 将数字的小数点转换成A (replaceSymbol：被替换的字符，transformSymbol：替换后的字符)
+    Utils.transform_Font_Type = function(number, replaceSymbol, transformSymbol) {
+        var str = String(number);
+        var transformStr = transformSymbol || "A";
+        var replaceStr = replaceSymbol || ".";
+
+        return str.replace(replaceStr,transformStr);
+    };
+
+    // 分割数字，每3位加个逗号
+    Utils.format_By_Comma = function(number)
+    {
+        var str = String(number);
+        var newStr = "";
+        
+        var format = function(params){
+            var resultStr = "";
+            var count = 0;
+            for(var index = params.length-1 ; index >= 0 ; index--)
+            {
+                if(count % 3 == 0 && count != 0)
+                {
+                    resultStr = params.charAt(index) + "," + resultStr;
+                }
+                else
+                {
+                    resultStr = params.charAt(index) + resultStr;
+                }
+                count++;
+            }
+            return resultStr;
+        }
+
+
+        if(str.indexOf(".") == -1)
+        {
+            newStr = format(str);
+        }
+        else
+        {
+            // 小数点后的数字
+            var commaRight = str.slice(str.indexOf("."));
+
+            // 小数点前的数字
+            var commaLeft = str.slice(0,str.indexOf("."));
+
+            newStr = format(commaLeft);
+            newStr += commaRight;
+        }
+        
+        return newStr;
+    }
 }(Papaya));
 (function(root) {
     Papaya.Fruit = {};
@@ -1036,11 +1100,18 @@
         this.id             = root.Game.ID_FRUIT;
 
         this.baseLightNum   = 1;
-        this.multiples      = {low: 10, high: 20};
         this.betInfo        = {};
-        this.betTotal       = 0;
-
-        this.bonusWin       = 0;
+        this.multiples      = opts.multiples    || {low: 10, high: 20};
+        this.betTotal       = opts.betTotal     || 0;
+        this.guessBet       = opts.guessBet     || 0;                           //*猜大小的押注
+        this.bonusWin       = opts.bonusWin     || 0;
+        this.betFactor      = opts.betFactor    || 1;                           //*押注倍数
+        this.fruitBetList   = opts.fruitBetList || {};                          //*押注列表
+        this.lastFruit      = opts.lastFruit    || {};                          //*最新一次水果结果
+        this.records        = opts.records      || {};                          //*水果开启记录
+        this.guessedNum     = opts.guessedNum   || 0;                           //*博大小的结果
+        this.guessedType    = opts.guessedType  || Rotary.GUESS_SIZE_TYPE.LOW;  //*玩家选择大小的类型
+        this.state          = opts.state        || Game.STATE.READY;            //*游戏所处的状态
 
         this.init();
     };
@@ -1051,6 +1122,50 @@
     //Extend Prototype
     root.extend(Game.prototype, {
         init: function() {
+        },
+
+        betFruit: function (betInfo) {
+            //*押注水果
+            betInfo = JSON.parse(betInfo) || {};
+
+            for (var i in betInfo) {
+                this.fruitBetList[i] = betInfo[i];
+            }
+
+            this.state = Game.STATE.FRUIT_BETTING;
+        },
+
+        changeBetFactor: function (betFactor) {
+            //*设置押注倍数
+            betFactor = Number(betFactor) || 1;
+
+            if (Game.BET_FACTOR.indexOf(betFactor) != -1) {
+                this.betFactor = betFactor;
+                this.state = Game.STATE.FRUIT_BETTING;
+            }
+        },
+
+        fruitWithdraw: function (betInfo) {
+            var result = {
+                betTotal: 0
+            };
+
+            betInfo = JSON.parse(betInfo) || {};
+            var betTotal = 0;
+            for (var betIndex in betInfo) {
+                betTotal += betInfo[betIndex];
+            }
+            if (betTotal <= 0) {
+                result.errCode = Game.ERR_CODE.NOT_BET;
+                return result;
+            }
+
+            result.betTotal = betTotal;
+            this.betTotal = result.betTotal;
+
+            this.state = Game.STATE.FRUIT_BETTING;
+
+            return result;
         },
 
         betOn: function (betInfo) {
@@ -1098,6 +1213,9 @@
 
             result.bonusWin = this.calcBonusWin(result.fruits);
             this.bonusWin = result.bonusWin;
+
+            this.lastFruit = result.fruits;
+            this.state = Game.STATE.FRUIT_RUSELT;
 
             return result;
         },
@@ -1147,6 +1265,33 @@
             return bonus;
         },
 
+        guessWithdraw: function (betInfo) {
+            var result = {
+                errCode: null
+            };
+
+            var betNum = betInfo;
+            if (betNum == 0) {
+                result.errCode = Game.ERR_CODE.NOT_BET;
+                return result;
+            }
+
+            this.betTotal = Number(betNum);
+            return result;
+        },
+
+        setGuessBetting: function (bet) {
+            var result = {
+                errCode: null
+            };
+
+            bet = Number(bet) || 1;
+            this.guessBet = bet;
+            this.gameState = Game.STATE.GUESS_BETTING;
+
+            return result;
+        },
+
         guessTheSizeOf: function (betInfo) {
             var result = {
                 errCode: null,
@@ -1187,22 +1332,29 @@
 
             this.betTotal = betNum;
 
+            this.state = Game.STATE.GUESS_STOP;
+            this.guessedType = betType;
+            this.guessedNum = randNum;
+            this.guessBet = betNum;
+
             return result;
         }
     });
 
     Game.STATE = {};
-    Game.STATE.READY            = 0;
-    Game.STATE.STARTED          = 1;
-    Game.STATE.SHUFFLED         = 2;
-    Game.STATE.DEALED           = 3;
-    Game.STATE.DRAWED           = 4;
-    Game.STATE.ENDED            = 9;
+    Game.STATE.READY             = 0;
+    Game.STATE.FRUIT_BETTING     = 1;
+    Game.STATE.FRUIT_RUSELT      = 2;
+    Game.STATE.FRUIT_ROTA_STOP   = 3;
+    Game.STATE.GUESS_BETTING     = 4;
+    Game.STATE.GUESS_STOP        = 5;
 
     Game.ERR_CODE = {
         NOT_BET: 10001, //*没有下注
         EXCEED_BETS: 10002 //*超过下注金额
     };
+
+    Game.BET_FACTOR = [1, 5, 10, 20, 50, 100];
 }(Papaya));
 (function(root) {
     var Event = root.Event = function() {

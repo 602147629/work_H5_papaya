@@ -142,13 +142,13 @@ var NetManager = (function(_super) {
         var complete = function(err, data) {
             // 这里可以先拦截需要统一处理的错误
             if (err != null) {
-
+                return;
             }
 
             // 这里统一同步账户余额
             var player = App.player;
             if (data.balance) {
-                player && player.setBalance(data.balance);
+                player && player.setBalance(Math.floor(data.balance/100));
             }
 
             if (handler) {

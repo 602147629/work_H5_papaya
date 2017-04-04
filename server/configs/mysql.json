@@ -19,6 +19,16 @@
     "multipleStatements": true
   },
 
+  "testgg": {
+    "host"              : "127.0.0.1",
+    "port"              : "3306",
+    "user"              : "testgg",
+    "password"          : "dev",
+    "database"          : "papaya",
+    "connectionLimit"   : 5,
+    "multipleStatements": true
+  },
+
   "development": {
     "host"              : "narwhale.mysql.rds.aliyuncs.com",
     "port"              : "3306",

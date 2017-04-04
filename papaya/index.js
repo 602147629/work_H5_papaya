@@ -19,7 +19,8 @@ var products = [
     'lucky5',
     'pokerGo',
     //'pokerGoGo',
-    'Shark'
+    'Shark',
+    'DiamondDeal'
 ];
 
 for (var i in products) {

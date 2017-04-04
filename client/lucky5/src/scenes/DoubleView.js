@@ -119,7 +119,18 @@ var DoubleView = (function(_super) {
 
     __proto.onBackClick = function() {
         App.assetsManager.playSound("click");
-        App.runTableView();
+
+        var complete = function(err, data) {
+            if (err != null) {
+                return;
+            }
+
+            App.runTableView();
+        };
+
+        var api = "/lucky5/back";
+        var params = {};
+        App.netManager.request(api, params, Laya.Handler.create(null, complete));
     };
 
     __proto.onPokerClick = function(selectIndex) {
@@ -210,6 +221,7 @@ var DoubleView = (function(_super) {
             App.uiManager.showMessage(msg);
 
             this.timerOnce(1000, null, function() {
+                self.lastScore = self.score;
                 self.enterState = DoubleView.STATE_READY;
             });
         } else {

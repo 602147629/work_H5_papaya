@@ -1,16 +1,23 @@
 
 module.exports = function(grunt) {
-    if (process.argv.length < 3) {
-        console.log('Usage: grunt projectName');
-        process.exit(-1);
-    }
+    // if (process.argv.length < 3) {
+    //     console.log('Usage: grunt projectName');
+    //     process.exit(-1);
+    // }
 
+    var isProject = true;
     var projectName = process.argv[2];
+    var projectFiles = null;
+    try {
+        projectFiles = grunt.file.readJSON(projectName + '/' + projectName + '.files.json')
+    } catch (e) {
+        isProject = false;
+    }
 
     grunt.initConfig({
         pkg: grunt.file.readJSON("package.json"),
         projectName: projectName,
-        projectFiles: grunt.file.readJSON(projectName + '/' + projectName + '.files.json'),
+        projectFiles: projectFiles,
         baseFiles: [
             "base/boot.js",
             "base/events.js",
@@ -27,6 +34,12 @@ module.exports = function(grunt) {
         ],
 
         copy: {
+            papaya: {
+                expand: true,
+                cwd:    "./",
+                src:    ['**', '!node_modules/**', '!Gruntfile.js' ],
+                dest:   "../dist/papaya"
+            }
         },
 
         concat: {
@@ -73,10 +86,9 @@ module.exports = function(grunt) {
     grunt.loadNpmTasks("grunt-contrib-concat");
     grunt.loadNpmTasks("grunt-contrib-uglify");
 
-    if (projectName == "default") {
-        grunt.registerTask("default", ['concat', 'uglify']);
-    }
-    else {
+    grunt.registerTask("default", ['copy']);
+
+    if (isProject) {
         grunt.registerTask(projectName, ['concat:project']);
     }
 };

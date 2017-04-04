@@ -48,6 +48,7 @@ var TableView = (function(_super) {
         this.initPokers();
         this.initEvents();
         this.initValues();
+
     };
 
     TableView.prototype.initPokers = function() {

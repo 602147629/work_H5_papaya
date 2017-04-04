@@ -25,7 +25,12 @@
     });
 
     app.controller('ChatDetailCtrl', function($scope, $stateParams, Chats) {
+
         $scope.chat = Chats.get($stateParams.chatId);
+
+        $scope.$on("$ionicView.beforeEnter",function(){//每次进入页面前判断是否登录
+            console.log('i am here');
+        });
     });
 
     app.controller('AccountCtrl', function($scope) {

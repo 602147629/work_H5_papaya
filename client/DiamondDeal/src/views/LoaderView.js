@@ -38,5 +38,8 @@ var LoaderView = (function(_super) {
         this.message.text = s;
     };
 
+    LoaderView.prototype.dispose = function() {
+    };
+
     return LoaderView;
 }(LoaderViewUI));

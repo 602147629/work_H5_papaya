@@ -21,6 +21,17 @@
     }
   },
 
+  "testgg": {
+    "db"                : "papaya",
+    "user"              : "testgg",
+    "password"          : "dev",
+    "options"           : {
+      "host"            : "127.0.0.1",
+      "dialect"         : "mysql",
+      "pool"            : { "max": 30, "min": 0, "idle": 10000 }
+    }
+  },
+
   "development": {
     "db"                : "db_sandbox_papaya",
     "user"              : "whalejoy",

@@ -8,6 +8,11 @@ var LoaderView = (function(_super) {
     Laya.class(LoaderView, "LoaderView", _super);
 
     LoaderView.prototype.init = function() {
+        this.backgroud.visible = false;
+        //var loadingSkeleton = new Laya.Skeleton();
+        //loadingSkeleton.url = "assets/effect/loaderEffect/poacher.sk";
+        //loadingSkeleton.pos(720, 280);
+        //this.addChild(loadingSkeleton);
     };
 
     LoaderView.prototype.start = function() {

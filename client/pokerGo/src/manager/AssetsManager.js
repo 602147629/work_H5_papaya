@@ -19,7 +19,13 @@ var AssetsManager = (function(_super) {
         {
             url: "unpack.json",
             type: Laya.Loader.JSON
-        }
+        },
+
+        {
+            url: "assets/sound/LOADING.mp3",
+            type: Laya.Loader.SOUND
+        },
+
     ];
 
     var unpackRes = [
@@ -61,9 +67,59 @@ var AssetsManager = (function(_super) {
         },
 
         {
-            url: "assets/sound/music.mp3",
+            url: "assets/sound/GAME.mp3",
             type: Laya.Loader.SOUND
         },
+
+        {
+            url: "assets/sound/good_1.mp3",
+            type: Laya.Loader.SOUND
+        },
+
+        {
+            url: "assets/sound/good_2.mp3",
+            type: Laya.Loader.SOUND
+        },
+
+        {
+            url: "assets/sound/lost_1.mp3",
+            type: Laya.Loader.SOUND
+        },
+
+        {
+            url: "assets/sound/lost_2.mp3",
+            type: Laya.Loader.SOUND
+        },
+
+        {
+            url: "assets/sound/betOn_1.mp3",
+            type: Laya.Loader.SOUND
+        },
+
+        {
+            url: "assets/sound/betOn_2.mp3",
+            type: Laya.Loader.SOUND
+        },
+
+        {
+            url: "assets/sound/dealPoker_1.mp3",
+            type: Laya.Loader.SOUND
+        },
+
+        {
+            url: "assets/sound/dealPoker_2.mp3",
+            type: Laya.Loader.SOUND
+        },
+
+        {
+            url: "assets/sound/open_1.mp3",
+            type: Laya.Loader.SOUND
+        },
+
+        {
+            url: "assets/sound/open_2.mp3",
+            type: Laya.Loader.SOUND
+        },     
     ];
 
     var preloadFonts = [

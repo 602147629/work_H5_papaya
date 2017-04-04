@@ -161,7 +161,8 @@ var Application = (function (_super) {
             self.state = Application.STATE_PRELOADED;
 
             self.tableView          = new TableView();            
-            App.assetsManager.playMusic("music");
+            App.assetsManager.playMusic("GAME");
+            Laya.SoundManager.setMusicVolume(0.3);
         });
     };
 
@@ -289,6 +290,7 @@ var Application = (function (_super) {
 
         this.state = Application.STATE_STARTED;
         console.log('application started...');
+        Laya.SoundManager.playMusic("assets/sound/LOADING.mp3");
     };
 
     Application.stop = function() {

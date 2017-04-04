@@ -25,6 +25,8 @@ var TableView = (function(_super){
         //this.bet = 0;
         this.betAmount = this.bet;
         this.betCount = 0;
+        this.betAmountIndex = this.betCount;
+
 
         this.updateBalance();
         this.updateJackPotPool();
@@ -75,6 +77,8 @@ var TableView = (function(_super){
 
             var callback = function(){
                 self.doTipLabelEffect("请下注，开牌吧！");
+                var soundName = (Math.floor(Math.random() * 2 ) ) ? "betOn_1" : "betOn_2";
+                App.assetsManager.playSound(soundName);
             };
 
             self._isDeal = true;
@@ -84,6 +88,8 @@ var TableView = (function(_super){
                     self._isDeal = false;
                     App.uiManager.showMessageDialog(data,function (){
                         self.doTipLabelEffect("请重新开局吧！");
+                        var soundName = (Math.floor(Math.random() * 2 ) ) ? "open_1" : "open_2";
+                        App.assetsManager.playSound(soundName);
                     });
                 };
 
@@ -98,6 +104,7 @@ var TableView = (function(_super){
             }
             else{
                 self.bet = self.betAmount;
+                self.betCount = self.betAmountIndex;
                 self.updateBetAmountShow();
                 self.updateBoxNumShow(self.bet + Papaya.PokerGo.Game.BET_AMOUNT[Papaya.PokerGo.MIN_BET_INDEX]);
                 self.changeButtonState();
@@ -159,6 +166,8 @@ var TableView = (function(_super){
                 App.uiManager.showMessageDialog(data,function (){
                     self._isDraw = true;
                     self.doTipLabelEffect("请重新开局吧！");
+                    var soundName = (Math.floor(Math.random() * 2 ) ) ? "open_1" : "open_2";
+                    App.assetsManager.playSound(soundName);
                 });
                 self.updateResultsShow(data.results);
             };
@@ -188,6 +197,7 @@ var TableView = (function(_super){
         }
         this.bet = Papaya.PokerGo.Game.BET_AMOUNT[this.betCount];
         this.betAmount = this.bet;
+        this.betAmountIndex = this.betCount;
         this.updateBetAmountShow();
         this.updateBoxNumShow(this.bet + Papaya.PokerGo.Game.BET_AMOUNT[Papaya.PokerGo.MIN_BET_INDEX]);
     };
@@ -234,16 +244,22 @@ var TableView = (function(_super){
 
         var self = this;
         this._isDoEffect = true;
+        var isHavePoker = false;
 
         for (var i = 1 ; i <= 3 ; i++){
             var poker = self["_poker" + i];
 
             var callBack = function (index){
+                self._isDoEffect = false;
 
                 self["_poker" + index].removeSelf();
                 self["_poker" + index] = null;
 
-                self.doTipLabelEffect("请下注" + Papaya.PokerGo.Game.BET_AMOUNT[Papaya.PokerGo.MIN_BET_INDEX] + "筹码发牌！");
+                if (index == 2){
+                    self.doTipLabelEffect("请下注" + Papaya.PokerGo.Game.BET_AMOUNT[Papaya.PokerGo.MIN_BET_INDEX] + "筹码发牌！"); 
+                    var soundName = (Math.floor(Math.random() * 2 ) ) ? "dealPoker_1" : "dealPoker_2";
+                    App.assetsManager.playSound(soundName);   
+                }
             };
 
             if(poker){
@@ -256,9 +272,10 @@ var TableView = (function(_super){
                 var seq = Sequence.create(spawn,callFunc);
 
                 App.actionManager.addAction(seq,poker);
+                isHavePoker = true;
             }
         }
-
+        this._isDoEffect = (isHavePoker)  ? true : false;
     };
 
     TableView.prototype.doTipLabelEffect = function (msg,cd){
@@ -488,9 +505,18 @@ var TableView = (function(_super){
                 var doubleState = double.state;
 
                 this.boxNum.visible = true;
-
                 this.labelTip.text  = "请下注" + Papaya.PokerGo.Game.BET_AMOUNT[Papaya.PokerGo.MIN_BET_INDEX] + "筹码发牌！";
                 this.updateBoxNumShow(this.bet);
+
+                if(double.state != Papaya.PokerGo.Double.STATE.END){
+                    this.openDoubleView();
+                    return
+                    break;
+                }
+
+                var soundName = (Math.floor(Math.random() * 2 ) ) ? "dealPoker_1" : "dealPoker_2";
+                App.assetsManager.playSound(soundName);
+
                 break;
 
             case Papaya.PokerGo.Game.STATE.DEALED :
@@ -500,6 +526,9 @@ var TableView = (function(_super){
                 this.boxNum.visible = true;
                 this.labelTip.text  = "请下注，开牌吧！";
                 this.updateBoxNumShow(this.bet + Papaya.PokerGo.Game.BET_AMOUNT[Papaya.PokerGo.MIN_BET_INDEX]);
+
+                var soundName = (Math.floor(Math.random() * 2 ) ) ? "betOn_1" : "betOn_2";
+                App.assetsManager.playSound(soundName);
                 break;
 
             case Papaya.PokerGo.Game.STATE.DRAWED : 

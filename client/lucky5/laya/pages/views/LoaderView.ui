@@ -2,7 +2,7 @@
     "x":0,
     "type":"View",
     "selectedBox":1,
-    "selecteID":5,
+    "selecteID":2,
     "props":{"width":1136,"sceneColor":"#ffffff","height":640},
     "nodeParent":-1,
     "label":"View",

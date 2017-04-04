@@ -25,7 +25,7 @@
         this.result                 = opts.result || Poker.NOTHING;
         this.betAmount              = opts.betAmount || 0;
         this.score                  = opts.score || 0;
-        this.bonus                  = opts.bounus || 0;
+        this.bonus                  = opts.bonus || 0;
         
         this.init(opts);
     };

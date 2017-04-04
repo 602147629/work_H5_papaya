@@ -12,6 +12,10 @@ module.exports = function(sequelize, DataTypes) {
                 primaryKey: true,
                 defaultValue: 0
             },
+            gameId: {
+                type: DataTypes.INTEGER,
+                allowNull: true,
+            },
             name: {
                 type: DataTypes.STRING(255),
                 allowNull: false,

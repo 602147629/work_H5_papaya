@@ -323,13 +323,39 @@ var SingleAlone = (function(_super) {
     SingleAlone.response['/user/sync'] = {};
 
     SingleAlone.response['/fruit/enter'] = {};
+
+    SingleAlone.response['/fruit/fruitWithdraw'] = function(params) {
+        var data = {};
+        var game = App.game = new Fruit.Game();
+
+        data = game.fruitWithdraw(params.bet);
+        data.player = {
+            balance: App.player.balance - game.betTotal
+        };
+
+        return data;
+    };
+
     SingleAlone.response['/fruit/betOn'] = function(params) {
         var data = {};
         var game = App.game = new Fruit.Game();
 
         data = game.betOn(params.bet);
         data.player = {
-            balance: App.player.balance - game.betTotal + game.bonusWin
+            balance: App.player.balance + game.bonusWin
+        };
+
+        return data;
+    };
+
+    SingleAlone.response['/fruit/guessWithdraw'] = function () {
+        //*赌大小上分
+        var data = {};
+        var game = App.game = new Fruit.Game();
+
+        data = game.guessWithdraw(params.bet);
+        data.player = {
+            balance: App.player.balance
         };
 
         return data;
@@ -347,6 +373,51 @@ var SingleAlone = (function(_super) {
         data = game.guessTheSizeOf(betInfo);
         data.player = {
             balance: App.player.balance + game.bonusWin - game.betTotal
+        };
+
+        return data;
+    };
+
+    SingleAlone.response['/fruit/betFruit'] = function(params) {
+        //*押注水果记录
+        var data = {};
+        var game = App.game = new Fruit.Game();
+
+        var betInfo = params.fruitBetList;
+
+        data = game.guessTheSizeOf(betInfo);
+        data.player = {
+            balance: App.player.balance
+        };
+
+        return data;
+    };
+
+    SingleAlone.response['/fruit/setBetFactor'] = function(params) {
+        //*设置倍数
+        var data = {};
+        var game = App.game = new Fruit.Game();
+
+        var betInfo = params.fruitBetList;
+
+        data = game.guessTheSizeOf(betInfo);
+        data.player = {
+            balance: App.player.balance
+        };
+
+        return data;
+    };
+
+    SingleAlone.response['/fruit/setGuessBetting'] = function(params) {
+        //*猜大小保存
+        var data = {};
+        var game = App.game = new Fruit.Game();
+
+        var betInfo = params.bet;
+
+        data = game.setGuessBetting(betInfo);
+        data.player = {
+            balance: App.player.balance
         };
 
         return data;

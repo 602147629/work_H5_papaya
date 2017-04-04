@@ -26,4 +26,5 @@
     Game.ID_POKERGO        = 100003;
     Game.ID_POKERGOGO      = 100004;
     Game.ID_SHARK          = 100005;
+    Game.ID_DIAMONDDEAL    = 100006;
 }(Papaya));

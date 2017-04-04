@@ -84,7 +84,7 @@ var UIManager = (function(_super) {
         layer.addChild(messageDialog);
         Laya.stage.addChild(layer);
         this.addShieldLayerDialog(layer);
-        this.doScaleAction(messageDialog);
+        this.doScaleAction(messageDialog,1,messageDialog.openView);
     };
 
     UIManager.prototype.showDoubleView = function (){
@@ -131,13 +131,18 @@ var UIManager = (function(_super) {
         return shieldLayer;
     };
     //放大
-    UIManager.prototype.doScaleAction = function(uiNode,scale){
+    UIManager.prototype.doScaleAction = function(uiNode,scale,cb){
         var scale = scale || 1 ;
         uiNode.scaleX = 0;
         uiNode.scaleY = 0;
         var scale_1 = ScaleTo.create(0.1, scale+0.1);
         var scale_2 = ScaleTo.create(0.05, scale);
         
+        if (cb){
+            var callback = CallFunc.create(Laya.Handler.create(uiNode,cb));
+            return App.actionManager.addAction(Sequence.create(scale_1, scale_2,callback),uiNode);
+        }
+
         App.actionManager.addAction(Sequence.create(scale_1, scale_2),uiNode);
     };
     //缩小
@@ -356,6 +361,21 @@ var UIManager = (function(_super) {
 
             case Papaya.PokerGo.Game.ERR.NO_BET_MAX_AND_MIN :{
                 msg = "没有押注大小";
+                break
+            }
+
+            case Papaya.PokerGo.Double.ERR.NO_WIN_REWARD :{
+                msg = "没有赢得奖励";
+                break
+            }
+
+            case Papaya.PokerGo.Double.ERR.LOST :{
+                msg = "失败不能进行";
+                break
+            }
+
+            case Papaya.PokerGo.Double.ERR.END :{
+                msg = "已经领取奖励";
                 break
             }
         }

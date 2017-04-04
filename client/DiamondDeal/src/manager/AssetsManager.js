@@ -1,25 +1,25 @@
 
 var AssetsManager = (function(_super) {
     var loaderRes = [
-        // {
-        //     url: "assets/ui.loader/bg.png",
-        //     type: Laya.Loader.IMAGE
-        // },
-        //
-        // {
-        //     url: "assets/ui.loader/progress.png",
-        //     type: Laya.Loader.IMAGE
-        // },
-        //
-        // {
-        //     url: "assets/ui.loader/progress$bar.png",
-        //     type: Laya.Loader.IMAGE
-        // },
-        //
-        // {
-        //     url: "unpack.json",
-        //     type: Laya.Loader.JSON
-        // }
+         //{
+         //    url: "assets/ui.loader/bg.png",
+         //    type: Laya.Loader.IMAGE
+         //},
+
+         {
+             url: "assets/ui.loader/progress.png",
+             type: Laya.Loader.IMAGE
+         },
+
+         {
+             url: "assets/ui.loader/progress$bar.png",
+             type: Laya.Loader.IMAGE
+         },
+
+         {
+             url: "unpack.json",
+             type: Laya.Loader.JSON
+         }
     ];
 
     var unpackRes = [
@@ -27,30 +27,39 @@ var AssetsManager = (function(_super) {
     ];
 
     var preload = [
-        // {
-        //     url: "assets/atlas/assets/pokers.json",
-        //     type: Laya.Loader.ATLAS
-        // },
+        {
+            "url": "assets/atlas/assets/ui.common.json",
+            "type": Laya.Loader.ATLAS
+        },
         //
-        // {
-        //     url: "assets/atlas/assets/ui.common.json",
-        //     type: Laya.Loader.ATLAS
-        // },
+         {
+             url: "assets/ui.common/bg.png",
+             type: Laya.Loader.IMAGE
+         },
         //
-        // {
-        //     url: "assets/atlas/assets/ui.table.json",
-        //     type: Laya.Loader.ATLAS
-        // },
+        {
+            url: "assets/ui.common/bg_0001.png",
+            type: Laya.Loader.IMAGE
+        },
         //
-        // {
-        //     url: "assets/atlas/assets/ui.double.json",
-        //     type: Laya.Loader.ATLAS
-        // },
+        {
+            url: "assets/ui.common/bg_0002.png",
+            type: Laya.Loader.IMAGE
+        },
         //
-        // {
-        //     url: "assets/atlas/assets/ani.images.json",
-        //     type: Laya.Loader.ATLAS
-        // }
+        {
+            url: "assets/ui.common/bg_0003.png",
+            type: Laya.Loader.IMAGE
+        },
+
+        {
+            url: "assets/ui.common/img_0003.png",
+            type: Laya.Loader.IMAGE
+        },
+        {
+            url: "assets/ui.common/img_0016.png",
+            type: Laya.Loader.IMAGE
+        },
     ];
 
     var preloadSounds = [
@@ -128,59 +137,30 @@ var AssetsManager = (function(_super) {
     ];
 
     var preloadFonts = [
-        // {
-        //     url: "assets/fonts/colour.fnt",
-        //     type: Laya.Loader.XML
-        // },
+         {
+             url: "assets/ui.fonts/purple_white.fnt",
+             type: Laya.Loader.XML
+         },
         //
-        // {
-        //     url: "assets/fonts/golden.fnt",
-        //     type: Laya.Loader.XML
-        // },
+         {
+             url: "assets/ui.fonts/white.fnt",
+             type: Laya.Loader.XML
+         },
         //
-        // {
-        //     url: "assets/fonts/violet.fnt",
-        //     type: Laya.Loader.XML
-        // },
+        {
+            url: "assets/ui.fonts/white_red.fnt",
+            type: Laya.Loader.XML
+        },
         //
-        // {
-        //     url: "assets/fonts/white_Gray.fnt",
-        //     type: Laya.Loader.XML
-        // },
+        {
+            url: "assets/ui.fonts/yellow.fnt",
+            type: Laya.Loader.XML
+        },
+        {
+            url: "assets/ui.fonts/big_gray_purple.fnt",
+            type: Laya.Loader.XML
+        },
         //
-        // {
-        //     url: "assets/fonts/white_Violet.fnt",
-        //     type: Laya.Loader.XML
-        // },
-        //
-        // {
-        //     url: "assets/fonts/bule_Gradient.fnt",
-        //     type: Laya.Loader.XML
-        // },
-        //
-        // {
-        //     url: "assets/fonts/gray.fnt",
-        //     type: Laya.Loader.XML
-        // },
-        //
-        // {
-        //     url: "assets/fonts/gray_big.fnt",
-        //     type: Laya.Loader.XML
-        // },
-        //
-        // {
-        //     url: "assets/fonts/gray_small.fnt",
-        //     type: Laya.Loader.XML
-        // },
-        //
-        // {
-        //     url: "assets/fonts/golden_orange.fnt",
-        //     type: Laya.Loader.XML
-        // },
-        // {
-        //     url: "assets/fonts/white_pink.fnt",
-        //     type: Laya.Loader.XML
-        // }
     ];
 
     function AssetsManager() {

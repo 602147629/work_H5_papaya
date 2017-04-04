@@ -51,6 +51,38 @@
         }
     },
 
+    "testgg": {
+        "appenders": [
+            {
+                "type": "console",
+                "category": "console"
+            },
+
+            {
+                "type": "file",
+                "category": "access",
+                "filename": "../logs/papaya/access.log",
+                "maxLogSize": 102400000,
+                "backups": 100
+            },
+
+            {
+                "type": "dateFile",
+                "category": "application",
+                "filename": "../logs/papaya/application.log",
+                "pattern": "-yyyy-MM-dd",
+                "alwaysIncludePattern": true
+            }
+        ],
+
+        "replaceConsole": true,
+        "levels": {
+            "console": "ALL",
+            "access": "ALL",
+            "application": "ALL"
+        }
+    },
+
     "development": {
         "appenders": [
             {

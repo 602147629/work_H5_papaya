@@ -14,12 +14,17 @@ CacheManager.name = "CacheManager";
 CacheManager.init = function(cb) {
     var self = this;
 
+    this.games = {};
     this.agents = {};
     this.agentClass = {};
 
     async.series([
         function(callback) {
             self.load(callback)
+        },
+
+        function(callback) {
+            self.loadGames(callback);
         }
     ], function(err, results) {
         if (err != null) {
@@ -63,6 +68,25 @@ CacheManager.load = function(callback) {
     })
 };
 
+CacheManager.loadGames = function(callback) {
+    var self = this;
+    var Game = PapayaDB.models.game;
+
+    Game.findAll().then(function(records) {
+        records.forEach(function(record) {
+
+            self.games[record.id] = record.toJSON();
+
+            debug("game:%d:%s loaded", record.id, record.name);
+        });
+
+        callback(null);
+    }).catch(function(e) {
+        debug(e);
+        callback(e);
+    })
+};
+
 CacheManager.getAgent = function(ag) {
     var name = ag || defaultAgent;
     var names = Object.keys(this.agentClass);
@@ -73,3 +97,18 @@ CacheManager.getAgent = function(ag) {
     var Constructor = this.agentClass[name];
     return new Constructor();
 };
+
+CacheManager.getGame = function(gameID) {
+    return this.games[gameID];
+};
+
+CacheManager.findGame = function(value) {
+    for (var gameID in this.games) {
+        if (value && this.games[gameID].gameId == value) {
+            return this.games[gameID];
+        }
+    }
+
+    return null;
+};
+

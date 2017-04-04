@@ -20,6 +20,12 @@
                 "DEBUG": "papaya:*",
                 "DEBUG_COLORS": true,
                 "REGION": "debug"
+            },
+            "env_testgg" : {
+                "NODE_ENV": "testgg",
+                "DEBUG": "papaya:*",
+                "DEBUG_COLORS": true,
+                "REGION": "testgg"
             }
         }
     ],

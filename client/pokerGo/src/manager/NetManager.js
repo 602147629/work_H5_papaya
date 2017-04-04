@@ -150,7 +150,7 @@ var NetManager = (function(_super) {
             // 这里统一同步账户余额
             var player = App.player;
             if (data.balance) {
-                player && player.setBalance(data.balance);
+                player && player.setBalance(Math.floor(data.balance/100));
             }
             if (handler) {
                 handler.runWith([err, data]);

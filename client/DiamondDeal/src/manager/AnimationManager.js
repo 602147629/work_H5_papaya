@@ -1,21 +1,44 @@
 
 var AnimationManager = (function(_super) {
     var Animations = {
-        // "ani.poker.blink": {
-        //     urls: [
-        //         "assets/ani.images/10001.png",
-        //         "assets/ani.images/10002.png"
-        //     ],
-        //     interval: 480
-        // },
+         "ani.win.backGround1": {
+             urls: [
+                 "assets/ani/ani1/ani_cq1.png",
+                 "assets/ani/ani1/ani_cq2.png",
+                 "assets/ani/ani1/ani_cq3.png"
+             ],
+             interval: 100
+         },
         //
-        // "ani.blue.light": {
-        //     urls: [
-        //         "assets/ani.images/10003.png",
-        //         "assets/ani.images/10004.png"
-        //     ],
-        //     interval: 480
-        // },
+         "ani.win.backGround2": {
+             urls: [
+                 "assets/ani/ani2/ani_dg1.png",
+                 "assets/ani/ani2/ani_dg2.png",
+                 "assets/ani/ani2/ani_dg3.png",
+                 "assets/ani/ani2/ani_dg4.png",
+                 "assets/ani/ani2/ani_dg5.png",
+                 "assets/ani/ani2/ani_dg6.png"
+             ],
+             interval: 100
+         },
+        "ani.win.backGround3": {
+            urls: [
+                "assets/ani/ani3/ani_gh1.png",
+                "assets/ani/ani3/ani_gh2.png",
+                "assets/ani/ani3/ani_gh3.png",
+                "assets/ani/ani3/ani_gh4.png",
+                "assets/ani/ani3/ani_gh5.png"
+            ],
+            interval: 100
+        },
+        "ani.win.backGround4": {
+            urls: [
+                "assets/ani/ani4/ani_gs1.png",
+                "assets/ani/ani4/ani_gs2.png",
+                "assets/ani/ani4/ani_gs3.png"
+            ],
+            interval: 100
+        },
         //
         // "ani.table.win": {
         //     urls: [

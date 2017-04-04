@@ -567,27 +567,6 @@
             "rotated": false,
             "trimed": false
         },
-        "double_title.png": {
-            "frame": {
-                "x": 1575,
-                "y": 502,
-                "w": 84,
-                "h": 44,
-                "idx": 0
-            },
-            "spriteSourceSize": {
-                "x": 0,
-                "y": 0,
-                "w": 84,
-                "h": 44
-            },
-            "sourceSize": {
-                "w": 84,
-                "h": 44
-            },
-            "rotated": false,
-            "trimed": false
-        },
         "doubleInfoBg.png": {
             "frame": {
                 "x": 1331,
@@ -654,7 +633,7 @@
         "doubleStakeTitle.png": {
             "frame": {
                 "x": 1575,
-                "y": 548,
+                "y": 502,
                 "w": 114,
                 "h": 50,
                 "idx": 0
@@ -674,8 +653,8 @@
         },
         "doubleTitle.png": {
             "frame": {
-                "x": 0,
-                "y": 697,
+                "x": 1575,
+                "y": 554,
                 "w": 84,
                 "h": 44,
                 "idx": 0
@@ -710,6 +689,27 @@
             "sourceSize": {
                 "w": 90,
                 "h": 29
+            },
+            "rotated": false,
+            "trimed": false
+        },
+        "double_title.png": {
+            "frame": {
+                "x": 0,
+                "y": 697,
+                "w": 84,
+                "h": 44,
+                "idx": 0
+            },
+            "spriteSourceSize": {
+                "x": 0,
+                "y": 0,
+                "w": 84,
+                "h": 44
+            },
+            "sourceSize": {
+                "w": 84,
+                "h": 44
             },
             "rotated": false,
             "trimed": false
@@ -1113,6 +1113,27 @@
             "rotated": false,
             "trimed": false
         },
+        "randomMultipleLightBg.png": {
+            "frame": {
+                "x": 1503,
+                "y": 781,
+                "w": 186,
+                "h": 188,
+                "idx": 0
+            },
+            "spriteSourceSize": {
+                "x": 0,
+                "y": 0,
+                "w": 186,
+                "h": 188
+            },
+            "sourceSize": {
+                "w": 186,
+                "h": 188
+            },
+            "rotated": false,
+            "trimed": false
+        },
         "randomMultiple_1.5.png": {
             "frame": {
                 "x": 133,
@@ -1193,27 +1214,6 @@
             "sourceSize": {
                 "w": 51,
                 "h": 30
-            },
-            "rotated": false,
-            "trimed": false
-        },
-        "randomMultipleLightBg.png": {
-            "frame": {
-                "x": 1503,
-                "y": 781,
-                "w": 186,
-                "h": 188,
-                "idx": 0
-            },
-            "spriteSourceSize": {
-                "x": 0,
-                "y": 0,
-                "w": 186,
-                "h": 188
-            },
-            "sourceSize": {
-                "w": 186,
-                "h": 188
             },
             "rotated": false,
             "trimed": false

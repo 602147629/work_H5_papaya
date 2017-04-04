@@ -334,19 +334,28 @@ var BattleView = (function(_super) {
         Laya.SoundManager.playSound("assets/ui.sounds/bgm_go.mp3", 1);
         var self = this;
 
-        var complete = function(err,data) {
+
+        var drawComplete = function(err,data) {
             if(err != null)
             {
                 return;
             }
-            //self.startRound(data.surviveFish);
-            self.battleController.startRound(data);
+
+            var complete = function(err,data) {
+                if(err != null)
+                {
+                    return;
+                }
+                //self.startRound(data.surviveFish);
+                self.battleController.startRound(data);
+            };
+
+            var info = self.battleController.getSelectInfo();
+            info = JSON.stringify(info);
+
+            App.netManager.request('/shark/runnow', {info: info}, Laya.Handler.create(null, complete));
         };
-
-        var info = self.battleController.getSelectInfo();
-        info = JSON.stringify(info);
-
-        App.netManager.request('/shark/runnow', {info: info}, Laya.Handler.create(null, complete));
+        App.netManager.request('/shark/draw', null, Laya.Handler.create(null, drawComplete));
     };
 
     __proto.onLobby = function() {
@@ -823,43 +832,60 @@ var BattleView = (function(_super) {
             CallFunc.create(Laya.Handler.create(self,function(){
                 Laya.SoundManager.playSound("assets/ui.sounds/sound_getcoins.mp3", 1);
 
-                var rollTime = 120;
+                var winRewardGoldRoll = Sequence.create([
+                    NumberTo.create(2,0,winReward)
+                ]);
 
-                var frameIncrement = Math.round(winReward/rollTime);
-                if(frameIncrement <= 0)
-                {
-                    frameIncrement = 1;
-                }
-                var diffGold;
-                var rollFun = function(){
-                    winReward -= frameIncrement;
-                    if(winReward <= 0)
-                    {
-                        diffGold = frameIncrement - Math.abs(winReward);
-                        winReward = 0;
-                        currentGold += diffGold;
-                        winGold += diffGold;
-                    }
-                    else
-                    {
-                        currentGold += frameIncrement;
-                        winGold += frameIncrement;
-                    }
-
-                    self.winReward.text = winGold;
-                    self.goldLab.text = currentGold;
-
-                    if(winReward <= 0)
-                    {
-                        self.clearTimer(self,rollFun);
+                var accountGoldRoll = Sequence.create([
+                    NumberTo.create(2,currentGold,(currentGold+winReward)),
+                    CallFunc.create(Laya.Handler.create(null,function(){
                         setTimeout(function(){
                             App.removeMassageView();
                             self.nextRound();
                         },1000);
-                    }
-                };
+                    }))
+                ]);
 
-                self.timer.frameLoop(1,self,rollFun);
+                App.actionManager.addAction(winRewardGoldRoll,self.winReward);
+                App.actionManager.addAction(accountGoldRoll,self.goldLab);
+
+                //var rollTime = 120;
+                //
+                //var frameIncrement = Math.round(winReward/rollTime);
+                //if(frameIncrement <= 0)
+                //{
+                //    frameIncrement = 1;
+                //}
+                //var diffGold;
+                //var rollFun = function(){
+                //    winReward -= frameIncrement;
+                //    if(winReward <= 0)
+                //    {
+                //        diffGold = frameIncrement - Math.abs(winReward);
+                //        winReward = 0;
+                //        currentGold += diffGold;
+                //        winGold += diffGold;
+                //    }
+                //    else
+                //    {
+                //        currentGold += frameIncrement;
+                //        winGold += frameIncrement;
+                //    }
+                //
+                //    self.winReward.text = winGold;
+                //    self.goldLab.text = currentGold;
+                //
+                //    if(winReward <= 0)
+                //    {
+                //        self.clearTimer(self,rollFun);
+                //        setTimeout(function(){
+                //            App.removeMassageView();
+                //            self.nextRound();
+                //        },1000);
+                //    }
+                //};
+                //
+                //self.timer.frameLoop(1,self,rollFun);
             }))
         ]);
 

@@ -148,7 +148,9 @@ var NetManager = (function(_super) {
             // 这里统一同步账户余额
             var player = App.player;
             if (data.balance) {
-                player && player.setBalance(data.balance);
+                //data.balance = Math.floor(data.balance/100);
+                player && player.setBalance(Math.floor(data.balance/100));
+                //console.log(player);
             }
 
             if (handler) {
@@ -206,6 +208,7 @@ var NetManager = (function(_super) {
             if (handler) {
                 handler.runWith([err, data]);
             }
+
         };
 
         var api = "/user/sync";
@@ -262,8 +265,6 @@ var NetManager = (function(_super) {
 }(laya.events.EventDispatcher));
 
 var SingleAlone = (function(_super) {
-    //游戏逻辑处理
-    var Lucky5 = Papaya.Lucky5;
 
     function SingleAlone() {
         SingleAlone.super(this);
@@ -272,7 +273,8 @@ var SingleAlone = (function(_super) {
     Laya.class(SingleAlone, "SingleAlone", _super);
 
     // @Override
-    SingleAlone.prototype.init = function() {
+    SingleAlone.prototype.init = function(callback) {
+        callback && callback();
     };
 
     SingleAlone.prototype.encode = function() {
@@ -326,25 +328,41 @@ var SingleAlone = (function(_super) {
         return {player: player.clone()};
     };
     
-    SingleAlone.response['/lucky5/enter'] = {};
+    SingleAlone.response['/diamondDeal/enter'] = {};
 
     //以下这用于参考 游戏的逻辑处理从这里开始
-    SingleAlone.response['/lucky5/deal'] = function(params) {
-        var data = {};
-        var game = App.game = new Lucky5.Game();
+    SingleAlone.response['/diamondDeal/gameStart'] = function(params) {
+        var game = App.game;
 
-        game.bet(params.bet);
-        game.deal();
-
-        data.pokers = game.handPokers;
-        data.player = {
-            balance: App.player.balance - params.bet
-        };
-
-        console.log("下注金额：", params.bet, "余额：", data.player.balance);
+        var data = game.gameStart(params.bet);
 
         return data;
     };
+
+    SingleAlone.response['/diamondDeal/select'] = function(params) {
+        var game = App.game;
+
+        var data = game.select(params.pos);
+
+        return data;
+    };
+
+    SingleAlone.response['/diamondDeal/cashOut'] = function(params) {
+        var game = App.game;
+
+        var data = game.cashOut();
+
+        return data;
+    };
+
+    SingleAlone.response['/diamondDeal/quickPick'] = function(params) {
+        var game = App.game;
+
+        var data = game.quickPick();
+
+        return data;
+    };
+
 
     return SingleAlone;
 }(NetManager));

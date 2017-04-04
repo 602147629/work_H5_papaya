@@ -12,8 +12,8 @@ var DoubleView = (function (_super){
     DoubleView.prototype.init = function (){
 
         this.btnReady.disabled = true;        
-        var score = App.game.score;
-        this._lastbalance = App.player.balance - score;
+        var lastScore = App.game.double.lastScore;
+        this._lastbalance = App.player.balance - lastScore;
         this.updateBalance(this._lastbalance);
         this.updateReward();
 
@@ -22,6 +22,8 @@ var DoubleView = (function (_super){
 
         this.btnBetSmall.on(Laya.Event.CLICK,this,this.onBetTypeClick,[Papaya.PokerGo.Double.BET_TYPE.SMALL]);
         this.btnBetBig.on(Laya.Event.CLICK,this,this.onBetTypeClick,[Papaya.PokerGo.Double.BET_TYPE.BIG]);
+
+        this.changStateShow();
     };
     
     DoubleView.prototype.doFadeOutAction = function (){
@@ -85,6 +87,35 @@ var DoubleView = (function (_super){
         App.uiManager.doDirectionFadeOutAction(this.boxNum,"dowm",120);
     };
 
+    DoubleView.prototype.changStateShow = function (){
+        var double = App.game.double;
+        var state = double.state;
+        var self = this;
+
+        switch (state){
+            case  Papaya.PokerGo.Double.STATE.READY : 
+
+                break;
+
+            case  Papaya.PokerGo.Double.STATE.DEALED : 
+                this._isDeal = true;
+                self.updateDealPokers(function (){
+                    self.updateResultsShow(double.results);
+                    self._isReady = false;
+                });
+
+                this._betType = double.betType;
+                if(this._betType == Papaya.PokerGo.Double.BET_TYPE.SMALL){
+                    this.btnBetBig.visible = false;
+                }
+                else if(this._betType == Papaya.PokerGo.Double.BET_TYPE.BIG){
+                    this.btnBetSmall.visible = false;
+                }
+                break;
+
+        }
+    }
+
     DoubleView.prototype.doRemovePokerEffect = function (cb){
 
         var self = this;
@@ -122,19 +153,30 @@ var DoubleView = (function (_super){
         if (this._isDoEffect){
             return
         }
+
         var self = this;
-        
-        var double = App.game.double;
-        var lastScore = double.lastScore;
-        if(lastScore > 0){
-            this.doUpdateBalanceEffect(function (){
-                self.doFadeOutAction();
-                self.updateBalance();
-            });
+        var onComplete = function(err, data) {
+            if (err != null) {
+                App.uiManager.showMessage(err);
+                return;
+            }
+            var double = App.game.double;
+            var lastScore = double.lastScore;
+            if(lastScore >= 0){
+                self.doUpdateBalanceEffect(function (){
+                    self.doFadeOutAction();
+                    self.updateBalance();
+                    App.game.double.syncDouble(data);
+                });
+            };
             return ;
         }
 
-        self.doFadeOutAction();
+        var api = "/pokerGo/double/end";
+        var params = {};
+        App.netManager.request(api, params, Laya.Handler.create(null, onComplete));
+        
+        // self.doFadeOutAction();
     };
 
     DoubleView.prototype.doUpdateBalanceEffect = function (cb){
@@ -187,17 +229,14 @@ var DoubleView = (function (_super){
                 return;
             }
 
-            App.game.syncGame(data.game);
+            App.game.syncGame(data.game || {});
             App.game.double.syncDouble(data);
 
-            // self.updateBalance();
             self.updateDealPokers(function (){
                 self.updateResultsShow(data.results);
                 self._isReady = false;
             });
             self.updateReward();
-
-            
         };
 
         var api = "/pokerGo/double/deal";
@@ -221,7 +260,10 @@ var DoubleView = (function (_super){
                 this._pokerlight.play();
 
                 var self = this;
-                self["results_" + this._betType].visible = true;
+                if(self["results_" + this._betType]){
+                    self["results_" + this._betType].visible = true;
+
+                }
 
                 this.tip.skin = "assets/ui.double/img_winLabel.png";
 

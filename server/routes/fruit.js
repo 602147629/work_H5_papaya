@@ -59,20 +59,79 @@ router.get('/enter', function(req, res) {
     var data = {};
     var game = req.game;
 
+    data.furitBetList = game.fruitBetList;
+    data.betFactor = game.betFactor;
     switch (game.state) {
         case Fruit.Game.STATE.READY:
-        case Fruit.Game.STATE.STARTED:
-        case Fruit.Game.STATE.SHUFFLED:
+        case Fruit.Game.STATE.FRUIT_BETTING:
             break;
-        case Fruit.Game.STATE.DEALED:
+        case Fruit.Game.STATE.FRUIT_RUSELT:
+            data.lastFruit = game.lastFruit;
+            data.multiples = game.multiples;
+            data.bonusWin = game.bonusWin;
             break;
-        case Fruit.Game.STATE.DRAWED:
+        case Fruit.Game.STATE.FRUIT_ROTA_STOP:
             break;
-        case Fruit.Game.STATE.ENDED:
+        case Fruit.Game.STATE.GUESS_BETTING:
+            data.bonusWin = game.bonusWin;
+            break;
+        case Fruit.Game.STATE.GUESS_STOP:
+            data.guessedType = game.guessedType;
+            data.guessedNum = game.guessedNum;
+            data.guessBet = game.guessBet;
+            data.bonusWin = game.bonusWin;
             break;
     }
 
     res.JSONP(Code.OK, null, data);
+});
+
+
+router.get('/fruitWithdraw', function(req, res, next) {
+    var bet = req.query.bet;
+
+    var data = {};
+    var game = req.game;
+    var profile = req.profile;
+    var agent = cacheManager.getAgent(req.user.agent);
+
+    async.series([
+        function(callback) {
+            data = game.fruitWithdraw(bet);
+            callback(null);
+        },
+
+        function(callback) {
+            // 调用上分
+            agent.withdraw(req, (game.betTotal) * 100, function(err, balance) {
+                if (err != null) {
+                    callback(err);
+                    return;
+                }
+
+                data.balance = balance;
+                callback(null);
+            });
+        },
+
+        // 数据存盘
+        function(callback) {
+            profile.data = game.toString();
+            profile.save().then(function() {
+                callback(null);
+            }).catch(function(e) {
+                debug(e);
+                callback(Code.INTERNAL.MySQL_ERROR);
+            })
+        }
+    ], function(err) {
+        if (err != null) {
+            res.JSONP(Code.Failed, err);
+            return;
+        }
+
+        res.JSONP(Code.OK, null, data);
+    });
 });
 
 router.get('/betOn', function(req, res, next) {
@@ -87,13 +146,59 @@ router.get('/betOn', function(req, res, next) {
         // 转起来
         function(callback) {
             data = game.betOn(bet);
-
             callback(null);
         },
 
-        // 调用上分接口
+        // 调用下分接口
         function(callback) {
-            agent.withdraw(req.token, game.betTotal - game.bonusWin, function(err, balance) {
+            agent.deposit(req, (game.bonusWin) * 100, function(err, balance) {
+                if (err != null) {
+                    callback(err);
+                    return;
+                }
+
+                data.balance = balance;
+                callback(null);
+            });
+        },
+
+        // 数据存盘
+        function(callback) {
+            profile.data = game.toString();
+            profile.save().then(function() {
+                callback(null);
+            }).catch(function(e) {
+                debug(e);
+                callback(Code.INTERNAL.MySQL_ERROR);
+            })
+        }
+    ], function(err) {
+        if (err != null) {
+            res.JSONP(Code.Failed, err);
+            return;
+        }
+
+        res.JSONP(Code.OK, null, data);
+    });
+});
+
+router.get('/guessWithdraw', function(req, res, next) {
+    var bet = req.query.bet;
+
+    var data = {};
+    var game = req.game;
+    var profile = req.profile;
+    var agent = cacheManager.getAgent(req.user.agent);
+
+    async.series([
+        function(callback) {
+            data = game.guessWithdraw(bet);
+            callback(null);
+        },
+
+        function(callback) {
+            // 调用上分
+            agent.withdraw(req, (game.betTotal) * 100, function(err, balance) {
                 if (err != null) {
                     callback(err);
                     return;
@@ -144,8 +249,8 @@ router.get('/guessTheSizeOf', function(req, res) {
 
         // 调用下分接口
         function(callback) {
-            if (game.score > 0) {
-                agent.deposit(req.token, game.betTotal - game.bonusWin, function(err, balance) {
+            if (game.bonusWin > 0) {
+                agent.deposit(req, (game.bonusWin) * 100, function(err, balance) {
                     if (err != null) {
                         callback(err);
                         return;
@@ -154,7 +259,8 @@ router.get('/guessTheSizeOf', function(req, res) {
                     data.balance = balance;
                     callback(null);
                 });
-            } else {
+            }
+            else {
                 callback(null);
             }
         },
@@ -170,6 +276,108 @@ router.get('/guessTheSizeOf', function(req, res) {
             })
         }
 
+    ], function(err) {
+        if (err != null) {
+            res.JSONP(Code.Failed, err);
+            return;
+        }
+
+        res.JSONP(Code.OK, null, data);
+    });
+});
+
+router.get('/betFruit', function(req, res) {
+    var betInfo = req.query.fruitBetList;
+
+    var data = {};
+    var game = req.game;
+    var profile = req.profile;
+    var agent = cacheManager.getAgent(req.user.agent);
+
+    async.series([
+        function(callback) {
+            game.betFruit(betInfo);
+            callback(null);
+        },
+
+        //游戏存盘
+        function(callback) {
+            profile.data = game.toString();
+            profile.save().then(function() {
+                callback(null);
+            }).catch(function(e) {
+                debug(e);
+                callback(Code.INTERNAL.MySQL_ERROR);
+            })
+        }
+    ], function(err) {
+        if (err != null) {
+            res.JSONP(Code.Failed, err);
+            return;
+        }
+
+        res.JSONP(Code.OK, null, data);
+    });
+});
+
+router.get('/setBetFactor', function(req, res) {
+    var factor = req.query.factor;
+
+    var data = {};
+    var game = req.game;
+    var profile = req.profile;
+    var agent = cacheManager.getAgent(req.user.agent);
+
+    async.series([
+        function(callback) {
+            game.changeBetFactor(factor);
+            callback(null);
+        },
+
+        //游戏存盘
+        function(callback) {
+            profile.data = game.toString();
+            profile.save().then(function() {
+                callback(null);
+            }).catch(function(e) {
+                debug(e);
+                callback(Code.INTERNAL.MySQL_ERROR);
+            })
+        }
+    ], function(err) {
+        if (err != null) {
+            res.JSONP(Code.Failed, err);
+            return;
+        }
+
+        res.JSONP(Code.OK, null, data);
+    });
+});
+
+router.get('/setGuessBetting', function(req, res) {
+    var bet = req.query.bet;
+
+    var data = {};
+    var game = req.game;
+    var profile = req.profile;
+    var agent = cacheManager.getAgent(req.user.agent);
+
+    async.series([
+        function(callback) {
+            game.setGuessBetting(bet);
+            callback(null);
+        },
+
+        //游戏存盘
+        function(callback) {
+            profile.data = game.toString();
+            profile.save().then(function() {
+                callback(null);
+            }).catch(function(e) {
+                debug(e);
+                callback(Code.INTERNAL.MySQL_ERROR);
+            })
+        }
     ], function(err) {
         if (err != null) {
             res.JSONP(Code.Failed, err);

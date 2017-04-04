@@ -98,7 +98,7 @@ router.get('/deal', function(req, res) {
 
         // 调用上分接口
         function(callback) {
-            agent.withdraw(req.token, game.betAmount, function(err, balance) {
+            agent.withdraw(req, game.betAmount * 100, function(err, balance) {
                 if (err != null) {
                     callback(err);
                     return;
@@ -154,7 +154,7 @@ router.get('/draw', function(req, res) {
         // 调用下分接口
         function(callback) {
             if (game.score != null) {
-                agent.deposit(req.token, game.score - game.betAmount , function(err, balance) {
+                agent.deposit(req, (game.score - game.betAmount) * 100, function(err, balance) {
                     if (err != null) {
                         callback(err);
                         return;
@@ -258,7 +258,7 @@ router.get('/double/deal', function(req, res) {
         // 调用下分接口
         function(callback) {
             if (double.score != null) {
-                agent.deposit(req.token, double.score , function(err, balance) {
+                agent.deposit(req, double.score * 100, function(err, balance) {
                     if (err != null) {
                         callback(err);
                         return;
@@ -270,6 +270,49 @@ router.get('/double/deal', function(req, res) {
             } else {
                 callback(null);
             }
+        },
+
+        //游戏存盘
+        function(callback) {
+            profile.data = game.toString();
+            profile.save().then(function() {
+                callback(null);
+            }).catch(function(e) {
+                debug(e);
+                callback(Code.INTERNAL.MySQL_ERROR);
+            })
+        }
+
+    ], function(err) {
+        if (err != null) {
+            res.JSONP(Code.Failed, err);
+            return;
+        }
+
+        res.JSONP(Code.OK, null, data);
+    });
+});
+
+router.get('/double/end', function(req, res) {
+    var params = req.query || {};
+
+    var data = {};
+    var game = req.game;
+    var double = game.double;
+    var profile = req.profile;
+
+    params.game = game;
+
+    async.series([
+        function(callback) {
+            data = double.end(params);
+
+            if (data.err != null) {
+                callback(data.err);
+                return;
+            }
+
+            callback(null);
         },
 
         //游戏存盘

@@ -81,9 +81,8 @@ router.get('/ready', function(req, res, next) {
             callback(null);
         },
 
-        // 调用上分接口
         function(callback) {
-            agent.withdraw(req.token, 0, function(err, balance) {
+            agent.withdraw(req, 0, function(err, balance) {
                 if (err != null) {
                     callback(err);
                     return;
@@ -114,6 +113,44 @@ router.get('/ready', function(req, res, next) {
     });
 });
 
+router.get('/draw', function(req, res, next) {
+    var data = {};
+    var game = req.game;
+    var profile = req.profile;
+    var agent = cacheManager.getAgent(req.user.agent);
+
+    async.series([
+        function(callback) {
+            agent.withdraw(req, 0, function(err, balance) {
+                if (err != null) {
+                    callback(err);
+                    return;
+                }
+
+                data.balance = balance;
+                callback(null);
+            });
+        },
+
+        // 数据存盘
+        function(callback) {
+            profile.data = game.toString();
+            profile.save().then(function() {
+                callback(null);
+            }).catch(function(e) {
+                debug(e);
+                callback(Code.INTERNAL.MySQL_ERROR);
+            })
+        }
+    ], function(err) {
+        if (err != null) {
+            res.JSONP(Code.Failed, err);
+            return;
+        }
+        res.JSONP(Code.OK, null, data);
+    });
+});
+
 router.get('/runnow', function(req, res) {
     var params = req.query.info;
 
@@ -132,7 +169,9 @@ router.get('/runnow', function(req, res) {
         // 调用下分接口
         function(callback) {
             if (game.betCount > 0) {
-                agent.deposit(req.token, game.winScore - game.betCount, function(err, balance) {
+                //单位转换
+                var depositCount = (game.winScore - game.betCount) * 100;
+                agent.deposit(req, depositCount, function(err, balance) {
                     if (err != null) {
                         callback(err);
                         return;

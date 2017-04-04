@@ -1,4 +1,4 @@
-/*! pokerGo 2017-03-11 */
+/*! pokerGo 2017-03-16 */
 (function() {
     // Establish the root object,
     // `window` (`self`) in the browser,
@@ -1419,20 +1419,22 @@
         this.deck                   = opts.deck         || [];  // 一整副牌
         this.handPokers             = opts.handPokers   || [];  // 手牌
 
-        this.state                  = opts.state || Double.STATE.READY;
+        this.state                  = opts.state || Double.STATE.END;
 
         this.score                  = opts.score || 0;
         this.lastScore              = opts.lastScore || 0;
         this.rount                  = opts.rount || 0;
         this.results                = opts.results || 0;
+        this.betType                = opts.betType || 0;
     };
 
     //Inherits Class
     root.inherits(Double, _super);
 
     Double.STATE = {};
-    Double.STATE.READY            = 0;
-    Double.STATE.DEALED           = 1;
+    Double.STATE.READY            = 1;
+    Double.STATE.DEALED           = 2;
+    Double.STATE.END              = 3;
 
 
     //Constants
@@ -1447,10 +1449,11 @@
     };
 
     Double.ERR = {
-        NO_WIN_REWARD           : 20001,            //"没有赢得奖励"
-        NO_READY                : 20002,            //"不在游戏开局流程中"
-        NO_DEALED               : 20003,             //"不在游戏开牌流程中"
-        LOST                    : 20004,             //"失败不能进行"
+        NO_WIN_REWARD           : 20001,                //"没有赢得奖励"
+        NO_READY                : 20002,                //"不在游戏开局流程中"
+        NO_DEALED               : 20003,                //"不在游戏开牌流程中"
+        LOST                    : 20004,                //"失败不能进行"
+        END                     : 20005,                //"已经领取奖励"
     };
 
     //Extend Prototype
@@ -1494,6 +1497,7 @@
 
             this.lastScore = lastScore ;
             this.state = Double.STATE.READY;
+            console.log("this.state = " + this.state);
             this.results = 0;
             this.score = 0;
 
@@ -1527,23 +1531,22 @@
                 results : null,
                 score : 0,
                 err : null,
-                game : {},
                 lastScore : null
             };
 
             var betType = Number(opts.betType);
 
-            this.bettype = betType;
-
-            var game = opts.game;
-            game.score = 0;
-            results.game.score = 0;
-
             if(this.results == Double.RESULT_LOST){
                 results.err = Double.ERR.LOST;
                 return results
             }
+            console.log("@@@@@@@@@@@@@this.state = " + this.state);
+            if(this.state == Double.STATE.END){
+                results.err = Double.ERR.END;
+                return results
+            }
 
+            this.betType = betType;
             this.state = Double.STATE.DEALED;
 
             this.shuffle();
@@ -1604,16 +1607,41 @@
                 results.results = this.results;
             }
 
+            results.betType = this.betType ;
             results.rount = this.rount;
             results.state = this.state;
             results.handPokers = this.handPokers;
             return results;
         },
 
+        end : function (opts){
+            var results = {
+                err : null,
+                game : {},
+                lastScore : null
+            }
+
+            this.state = Double.STATE.END;
+
+            var game = opts.game;
+            game.score = 0;
+            results.game.score = 0;
+
+            this.lastScore = 0; 
+
+            results.lastScore = this.lastScore;
+            results.state = this.state;
+            return results
+        },
+
         syncDouble : function (opts){
             if (opts.handPokers){
                 this.handPokers = [];
                 this.handPokers = opts.handPokers;
+            }
+
+            if(opts.betType != null && opts.betType >= 0){
+                this.betType = opts.betType;
             }
 
             if(opts.results != null && opts.results >= 0){

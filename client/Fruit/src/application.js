@@ -221,8 +221,7 @@ var Application = (function (_super) {
             self.loaderView.setText("进入成功!");
 
             console.log("account entered...", JSON.stringify(data));
-
-            self.tableView.init();
+            self.tableView.init(data);
         };
 
         self.loaderView.setText("正在进入游戏...");

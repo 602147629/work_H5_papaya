@@ -71,11 +71,11 @@ var window = window || global;
     var app = window.App = Application;
 
     // 加载配置文件
-    Laya.loader.load("project.json", Laya.Handler.create(null, Main));
+    Laya.loader.load("project.json", Laya.Handler.create(null, Main), null, null, 1, false);
 
-    function Main() {
-
-        var config = app.config = Laya.loader.getRes("project.json");
+    // 主程序入口
+    function Main(config) {
+        var config = app.config = config;
 
         // 打开监视窗口
         if (config.showFPS) {

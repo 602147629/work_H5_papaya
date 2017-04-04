@@ -1,5 +1,5 @@
 var StorageManager = (function(_super) {
-    var AppKey = "asRBnhiNyaDD2OSu6iHK7bYONDPV7UQY";
+    var AppKey = "EdSIlrzBmUE2I4XPBVACUWN9v0JVzrjqWu7Y";
     
     function StorageManager() {
         this.storage = localStorage || {};

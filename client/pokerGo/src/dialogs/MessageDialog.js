@@ -14,6 +14,7 @@
                 this._resultsInfo.results == Papaya.PokerGo.Poker.HIT_COLUMN        ||
                 this._resultsInfo.results == Papaya.PokerGo.Poker.ONE_PAIR
          ){
+            this._isWin = false;
              this.lostShow();
          }
 
@@ -22,7 +23,9 @@
                     this._resultsInfo.results == Papaya.PokerGo.Poker.STREIGHT_FLUSH    ||
                     this._resultsInfo.results == Papaya.PokerGo.Poker.THREE_OF_A_KIND
          ){
-             this.winShow();
+            this._isWin = true;
+            this.winShow();
+             
          }
 
          this.btnDouble.on(Laya.Event.CLICK,this,this.onClickDouble);
@@ -75,6 +78,18 @@
 
          this.IconResurts.skin = "assets/ui.reward/results_" +this._resultsInfo.results+ ".png";
 
+     };
+
+     MessageDialog.prototype.openView = function (){
+        var self = this;
+        if (this._isWin){
+            var soundName = (Math.floor(Math.random() * 2 ) ) ? "good_1" : "good_2";
+            App.assetsManager.playSound(soundName);  
+        }
+        else {
+            var soundName = (Math.floor(Math.random() * 2 ) ) ? "lost_1" : "lost_2";
+            App.assetsManager.playSound(soundName);
+        }
      };
 
      MessageDialog.prototype.onClickDouble = function() {

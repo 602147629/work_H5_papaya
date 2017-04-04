@@ -17,6 +17,15 @@
         "prefix":         "papaya:session:"
     },
 
+    "testgg": {
+        "host":           "127.0.0.1",
+        "port":           6379,
+        "db":             1,
+        "ttl":            604800,
+        "disableTTL":     false,
+        "prefix":         "papaya:session:"
+    },
+
     "development": {
         "host":           "127.0.0.1",
         "port":           6379,

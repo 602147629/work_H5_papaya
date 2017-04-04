@@ -21,7 +21,7 @@
 
         this.state                  = Game.STATE.BET;
 
-        this.jackPotPool            = opts.jackPotPool || 2000;
+        this.jackPotPool            = opts.jackPotPool || 0;
     };
 
     //Inherits Class

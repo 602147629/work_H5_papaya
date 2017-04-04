@@ -43,7 +43,7 @@ var StorageManager = (function(_super) {
     StorageManager.prototype.getDeviceId = function() {
         var key = StorageManager.KEY_DEVICE_ID;
         var deviceId = this.getItem(key, true);
-        if (deviceId === undefined) {
+        if (deviceId === undefined || deviceId === "") {
             deviceId = uuid.v4();
             this.setItem(key, deviceId, true);
         }

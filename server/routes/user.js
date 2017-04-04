@@ -92,14 +92,13 @@ router.get('/sync', function(req, res) {
 
     async.series([
         function(callback) {
-            agent.getBalance(token, function(err, balance) {
+            agent.getBalance(req, function(err, balance) {
                 if (err != null) {
                     callback(err);
                     return
                 }
 
-                data.player.balance = balance;
-                data.balance = balance;
+                data.player.balance = Math.floor(balance/100);
                 callback(null);
             });
         },
@@ -116,9 +115,14 @@ router.get('/sync', function(req, res) {
 
         function(callback) {
             var payload = {
-                userID: user.id
+                userID:       user.id,
+                agent:        req.user.agent,
+                nickname:     token.nickname,
+                gameId:       token.gameId,
+                sessionId:    token.sessionId,
+                currency:     token.currency
             };
-
+            
             tokenManager.signAccess(payload, function(err, token) {
                 if (err != null) {
                     return callback(err);
